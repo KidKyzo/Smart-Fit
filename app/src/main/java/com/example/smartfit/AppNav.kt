@@ -9,32 +9,31 @@ import com.example.smartfit.screens.HomeScreen
 import com.example.smartfit.screens.LoginScreen
 import com.example.smartfit.screens.SettingScreen
 import com.example.smartfit.screens.SplashScreen
+import com.example.smartfit.viewmodel.ThemeViewModel
 
 @Composable
-fun AppNav() {
+fun AppNav(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.splash
-    ) {
+    NavHost(navController = navController, startDestination = Routes.splash) {
         composable(Routes.splash) {
             SplashScreen(navController)
         }
         composable(Routes.home) {
             HomeScreen(modifier = Modifier, navController)
         }
-        composable(Routes.log){
-
+        composable(Routes.log) {
+            // LogActivity(navController) // Uncomment when created
         }
-        composable(Routes.setting){
-            SettingScreen(modifier = Modifier, navController)
-
+        composable(Routes.setting) {
+            // Pass the ViewModel here
+            SettingScreen(modifier = Modifier, navController, themeViewModel)
         }
-        composable(Routes.profile){
-
+        composable(Routes.profile) {
+            // ProfileScreen(navController) // Uncomment when created
         }
-        composable(Routes.login){
+        composable(Routes.login) {
             LoginScreen(modifier = Modifier, navController)
-
         }
     }
 }

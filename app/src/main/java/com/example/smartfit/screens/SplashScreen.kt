@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,8 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
-import com.example.smartfit.ui.theme.Secondary
-import com.example.smartfit.ui.theme.TextBlack
 import kotlinx.coroutines.delay
 
 @Composable
@@ -31,23 +30,22 @@ fun SplashScreen(navController: NavController){
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Secondary),
+            .background(MaterialTheme.colorScheme.secondary), // Use Theme Secondary
         contentAlignment = Alignment.Center
 
     ){
         Column(horizontalAlignment = Alignment.CenterHorizontally){
             Text(
                 text = "SmartFit",
-                color = TextBlack,
+                color = MaterialTheme.colorScheme.onSecondary, // Readable on Secondary
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold
-
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Track your Day",
-                color = TextBlack,
+                color = MaterialTheme.colorScheme.onSecondary,
                 fontSize = 20.sp
             )
         }

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -19,11 +20,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.smartfit.NavItem
-import com.example.smartfit.ui.theme.Background
-
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier,navController: NavController) {
+fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
 
     val navList = listOf(
         NavItem("Home", Icons.Default.Home),
@@ -31,22 +30,19 @@ fun HomeScreen(modifier: Modifier = Modifier,navController: NavController) {
         NavItem("Profile", Icons.Default.Person),
     )
 
-    var selectedIndex by remember{
-        mutableStateOf(0)
-    }
+    var selectedIndex by remember{ mutableStateOf(0) }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                containerColor = Background
+                // Use theme surface color
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
-
                 navList.forEachIndexed { index, navItem ->
                     NavigationBarItem(
                         selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                        },
+                        onClick = { selectedIndex = index },
                         icon = {
                             Icon(imageVector = navItem.icon, contentDescription = "Icon")
                         },
@@ -58,17 +54,15 @@ fun HomeScreen(modifier: Modifier = Modifier,navController: NavController) {
             }
         }
     ) { innerpadding ->
-        ScreenContent(modifier = Modifier.padding(innerpadding),selectedIndex,navController)
-
+        ScreenContent(modifier = Modifier.padding(innerpadding), selectedIndex, navController)
     }
 }
 
 @Composable
 fun ScreenContent(modifier: Modifier = Modifier, selectedIndex: Int, navController: NavController){
     when(selectedIndex){
-        0->HomeContent(navController = navController)
-        1->LogActivity()
-        2->ProfileScreen()
+        0 -> HomeContent(navController = navController)
+        1 -> LogActivity()
+        2 -> ProfileScreen()
     }
-
 }

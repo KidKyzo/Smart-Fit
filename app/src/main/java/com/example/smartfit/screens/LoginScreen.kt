@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -26,7 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -40,8 +41,6 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.smartfit.R
 import com.example.smartfit.Routes
-import com.example.smartfit.ui.theme.Primary
-import com.example.smartfit.ui.theme.TextBlack
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
@@ -49,8 +48,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.man_running)
-    )
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.man_running))
     val progress by animateLottieCompositionAsState(
         isPlaying = true,
         composition = composition,
@@ -59,9 +57,11 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
     )
 
     Column(
-        modifier = modifier.fillMaxSize().padding(top = 120.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(top = 160.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    ) {
 
         LottieAnimation(
             modifier = Modifier
@@ -75,75 +75,78 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
             text = "Welcome to SmartFit",
             fontSize = 30.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = TextBlack
+            color = MaterialTheme.colorScheme.onBackground // Adapts to Dark/Light
         )
         Text(
             text = "Login to your account",
             fontSize = 16.sp,
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val textFieldColors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            cursorColor = MaterialTheme.colorScheme.primary
+        )
+
         TextField(
             value = email,
-            onValueChange = {email = it},
-            label = { Text(text = "Email")},
+            onValueChange = { email = it },
+            label = { Text(text = "Email") },
             leadingIcon = { Icon(imageVector = Icons.Default.Person4, contentDescription = "Email") },
             shape = RoundedCornerShape(10.dp),
-            modifier = modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 15.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Primary,
-                unfocusedContainerColor = Transparent,
-                focusedTextColor = TextBlack,
-                unfocusedTextColor = TextBlack,
-            ),
-
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 15.dp),
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = password,
-            onValueChange = {password = it},
+            onValueChange = { password = it },
             label = { Text(text = "Password") },
             leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "Password") },
-            visualTransformation = if(passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon ={
-                val image = if (passwordVisible)
-                    Icons.Default.Visibility
-                else
-                    Icons.Default.VisibilityOff
-                Icon(imageVector = image, contentDescription = "Password visibility", modifier = Modifier.clickable{passwordVisible = !passwordVisible})
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                Icon(
+                    imageVector = image,
+                    contentDescription = "Password visibility",
+                    modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+                )
             },
             shape = RoundedCornerShape(10.dp),
-            modifier = modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 15.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Primary,
-                unfocusedContainerColor = Transparent,
-                focusedTextColor = TextBlack,
-                unfocusedTextColor = TextBlack,
-            )
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 15.dp),
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
-            onClick = {
-                navController.navigate(Routes.home)
-            }) {
+            onClick = { navController.navigate(Routes.home) }
+        ) {
             Text(
                 text = "Login",
-                color = TextBlack
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(30.dp))
 
         Text(
             text = "Forget Password?",
-            color = TextBlack,
-            modifier = Modifier.clickable{}
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.clickable {}
         )
     }
 }

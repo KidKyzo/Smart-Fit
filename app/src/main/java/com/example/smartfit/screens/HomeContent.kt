@@ -1,16 +1,14 @@
 package com.example.smartfit.screens
 
-import android.R
-import android.provider.CalendarContract
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -21,8 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
-import com.example.smartfit.ui.theme.Primary
-import com.example.smartfit.ui.theme.TextBlack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,8 +31,9 @@ fun HomeContent(modifier: Modifier = Modifier, navController: NavController){
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Primary,
-            titleContentColor = TextBlack
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         actions = {
             IconButton(onClick = {
@@ -44,8 +41,7 @@ fun HomeContent(modifier: Modifier = Modifier, navController: NavController){
             }) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Profile",
-                    tint = TextBlack
+                    contentDescription = "Settings"
                 )
             }
         }
@@ -59,8 +55,7 @@ fun HomeContent(modifier: Modifier = Modifier, navController: NavController){
             text = "Home Content",
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold,
-            color = TextBlack
+            color = MaterialTheme.colorScheme.onBackground
         )
-
     }
 }

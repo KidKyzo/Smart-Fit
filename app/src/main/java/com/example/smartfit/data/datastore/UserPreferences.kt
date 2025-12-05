@@ -1,1 +1,34 @@
 
+package com.example.smartfit.data.datastore
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+// Extension property to create the DataStore singleton
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
+class UserPreferences(private val context: Context) {
+
+    companion object {
+        val THEME_KEY = booleanPreferencesKey("is_dark_mode")
+    }
+
+    // Get the theme setting (default to false if not set)
+    val themeFlow: Flow<Boolean?> = context.dataStore.data
+        .map { preferences ->
+            preferences[THEME_KEY]
+        }
+
+    // Save the theme setting
+    suspend fun saveTheme(isDarkMode: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[THEME_KEY] = isDarkMode
+        }
+    }
+}
