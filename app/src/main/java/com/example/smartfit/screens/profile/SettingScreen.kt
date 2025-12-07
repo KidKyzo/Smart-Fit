@@ -1,4 +1,4 @@
-package com.example.smartfit.screens
+package com.example.smartfit.screens.profile
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package com.example.smartfit.screens
+package com.example.smartfit.screens.auth
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -41,9 +41,10 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.smartfit.R
 import com.example.smartfit.Routes
+import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, userViewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -68,7 +69,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                 .size(200.dp)
                 .align(Alignment.CenterHorizontally),
             composition = composition,
-            progress = progress
+            progress = { progress }
         )
 
         Text(
@@ -133,7 +134,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
-            onClick = { navController.navigate(Routes.home) }
+            onClick = { userViewModel.login() }
         ) {
             Text(
                 text = "Login",

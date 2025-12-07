@@ -1,4 +1,4 @@
-package com.example.smartfit.screens
+package com.example.smartfit.screens.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,10 +20,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.smartfit.NavItem
+import com.example.smartfit.screens.activity.LogActivity
+import com.example.smartfit.screens.profile.ProfileScreen
+import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.ThemeViewModel
+import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
-
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    activityViewModel: ActivityViewModel,
+    themeViewModel: ThemeViewModel,
+    userViewModel: UserViewModel
+) {
     val navList = listOf(
         NavItem("Home", Icons.Default.Home),
         NavItem("Activity", Icons.AutoMirrored.Filled.DirectionsWalk),
@@ -36,15 +46,19 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                // Use theme surface color
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 navList.forEachIndexed { index, navItem ->
                     NavigationBarItem(
                         selected = selectedIndex == index,
-                        onClick = { selectedIndex = index },
+                        onClick = {
+                            selectedIndex = index
+                        },
                         icon = {
-                            Icon(imageVector = navItem.icon, contentDescription = "Icon")
+                            Icon(
+                                imageVector = navItem.icon,
+                                contentDescription = "${navItem.label} navigation"
+                            )
                         },
                         label = {
                             Text(text = navItem.label)
@@ -54,15 +68,31 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
             }
         }
     ) { innerpadding ->
-        ScreenContent(modifier = Modifier.padding(innerpadding), selectedIndex, navController)
+        ScreenContent(
+            modifier = Modifier.padding(innerpadding),
+            selectedIndex = selectedIndex,
+            navController = navController,
+            activityViewModel = activityViewModel,
+            themeViewModel = themeViewModel,
+            userViewModel = userViewModel,
+            onNavigate = { selectedIndex = it }
+        )
     }
 }
 
 @Composable
-fun ScreenContent(modifier: Modifier = Modifier, selectedIndex: Int, navController: NavController){
+fun ScreenContent(
+    modifier: Modifier = Modifier,
+    selectedIndex: Int,
+    navController: NavController,
+    activityViewModel: ActivityViewModel,
+    themeViewModel: ThemeViewModel,
+    userViewModel: UserViewModel,
+    onNavigate: (Int) -> Unit
+){
     when(selectedIndex){
-        0 -> HomeContent(navController = navController)
-        1 -> LogActivity()
-        2 -> ProfileScreen()
+        0 -> HomeContent(navController = navController, activityViewModel = activityViewModel)
+        1 -> LogActivity(viewModel = activityViewModel, onBack = { onNavigate(0) })
+        2 -> ProfileScreen(themeViewModel = themeViewModel, userViewModel = userViewModel, onBack = { onNavigate(0) })
     }
 }
