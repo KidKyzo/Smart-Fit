@@ -29,4 +29,10 @@ class UserRepository(context: Context) {
     suspend fun logout() {
         userPreferences.logout()
     }
+    
+    val stepTrackingData: Flow<Triple<Int, Int, Long>> = userPreferences.stepTrackingFlow
+    
+    suspend fun saveStepTrackingData(lastStepCount: Int, savedStepsToday: Int, lastTrackingDate: Long) {
+        userPreferences.saveStepTrackingData(lastStepCount, savedStepsToday, lastTrackingDate)
+    }
 }

@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,7 +41,7 @@ fun HomeScreen(
         NavItem("Profile", Icons.Default.Person),
     )
 
-    var selectedIndex by remember{ mutableStateOf(0) }
+    var selectedIndex by remember{ mutableIntStateOf(0) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,11 +71,11 @@ fun HomeScreen(
     ) { innerpadding ->
         ScreenContent(
             modifier = Modifier.padding(innerpadding),
-            selectedIndex = selectedIndex,
             navController = navController,
             activityViewModel = activityViewModel,
             themeViewModel = themeViewModel,
             userViewModel = userViewModel,
+            selectedIndex = selectedIndex,
             onNavigate = { selectedIndex = it }
         )
     }
@@ -83,16 +84,27 @@ fun HomeScreen(
 @Composable
 fun ScreenContent(
     modifier: Modifier = Modifier,
-    selectedIndex: Int,
     navController: NavController,
     activityViewModel: ActivityViewModel,
     themeViewModel: ThemeViewModel,
     userViewModel: UserViewModel,
+    selectedIndex: Int,
     onNavigate: (Int) -> Unit
-){
-    when(selectedIndex){
-        0 -> HomeContent(navController = navController, activityViewModel = activityViewModel)
-        1 -> LogActivity(viewModel = activityViewModel, onBack = { onNavigate(0) })
-        2 -> ProfileScreen(themeViewModel = themeViewModel, userViewModel = userViewModel, onBack = { onNavigate(0) })
+) {
+    when(selectedIndex) {
+        0 -> HomeContent(
+            modifier = modifier,
+            navController = navController,
+            activityViewModel = activityViewModel
+        )
+        1 -> LogActivity(
+            viewModel = activityViewModel, 
+            onBack = { onNavigate(0) }
+        )
+        2 -> ProfileScreen(
+            themeViewModel = themeViewModel, 
+            userViewModel = userViewModel, 
+            onBack = { onNavigate(0) }
+        )
     }
 }

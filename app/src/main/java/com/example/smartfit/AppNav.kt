@@ -1,5 +1,6 @@
 package com.example.smartfit
 
+import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +30,7 @@ import com.example.smartfit.viewmodel.UserViewModelFactory
 fun AppNav(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
     val context = navController.context
+    val application = context.applicationContext as Application
     
     // Initialize database and repository
     val database = AppDatabase.getDatabase(context)
@@ -36,7 +38,7 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     val userRepository = UserRepository(context)
 
     val activityViewModel: ActivityViewModel = viewModel(
-        factory = ActivityViewModelFactory(activityRepository, userRepository)
+        factory = ActivityViewModelFactory(application, activityRepository, userRepository)
     )
     val userViewModel: UserViewModel = viewModel(
         factory = UserViewModelFactory(userRepository)
@@ -50,8 +52,11 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 popUpTo(Routes.login) { inclusive = true }
             }
         } else if (!isLoggedIn && navController.currentDestination?.route != Routes.login) {
-            navController.navigate(Routes.login) {
-                popUpTo(Routes.home) { inclusive = true }
+            // Note: This logic might need refinement to avoid loops if splash is initial
+             if (navController.currentDestination?.route != Routes.splash) {
+                // navController.navigate(Routes.login) {
+                //    popUpTo(Routes.home) { inclusive = true }
+                // }
             }
         }
     }

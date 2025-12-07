@@ -44,6 +44,7 @@ fun HomeContent(
     val distance by activityViewModel.distance.collectAsState()
     val activeTime by activityViewModel.activeTime.collectAsState()
     val weeklyAvgSteps by activityViewModel.weeklyAvgSteps.collectAsState()
+    val averageSpeed by activityViewModel.averageSpeed.collectAsState()
 
     val progress = if (stepGoal > 0) steps.toFloat() / stepGoal.toFloat() else 0f
     
@@ -62,7 +63,8 @@ fun HomeContent(
                 calories = calories,
                 distance = distance,
                 activeTime = activeTime,
-                weeklyAvgSteps = weeklyAvgSteps
+                weeklyAvgSteps = weeklyAvgSteps,
+                averageSpeed = averageSpeed
             )
         },
         tabletContent = {
@@ -76,7 +78,8 @@ fun HomeContent(
                 calories = calories,
                 distance = distance,
                 activeTime = activeTime,
-                weeklyAvgSteps = weeklyAvgSteps
+                weeklyAvgSteps = weeklyAvgSteps,
+                averageSpeed = averageSpeed
             )
         }
     )
@@ -93,7 +96,8 @@ fun PhoneHomeLayout(
     calories: Int,
     distance: Double,
     activeTime: Int,
-    weeklyAvgSteps: Int
+    weeklyAvgSteps: Int,
+    averageSpeed: Double
 ) {
     AppScaffold(
         topBar = { HomeHeader(currentDate) }
@@ -113,7 +117,8 @@ fun PhoneHomeLayout(
                     calories = calories,
                     distance = distance,
                     activeTime = activeTime,
-                    weeklyAvgSteps = weeklyAvgSteps
+                    weeklyAvgSteps = weeklyAvgSteps,
+                    averageSpeed = averageSpeed
                 )
             }
             item {
@@ -138,7 +143,8 @@ fun TabletHomeLayout(
     calories: Int,
     distance: Double,
     activeTime: Int,
-    weeklyAvgSteps: Int
+    weeklyAvgSteps: Int,
+    averageSpeed: Double
 ) {
     AppScaffold(
         topBar = { TabletHeader(currentDate) }
@@ -165,7 +171,8 @@ fun TabletHomeLayout(
                     calories = calories,
                     distance = distance,
                     activeTime = activeTime,
-                    weeklyAvgSteps = weeklyAvgSteps
+                    weeklyAvgSteps = weeklyAvgSteps,
+                    averageSpeed = averageSpeed
                 )
                 SectionHeader(title = "Recent Activities", actionText = "View All") {
                      // TODO: Navigate to full activity list
@@ -226,7 +233,7 @@ fun StepTrackerCircle(steps: Int, goal: Int, progress: Float) {
 
     LaunchedEffect(progress) {
         animatedProgress.animateTo(
-            targetValue = progress,
+            targetValue = progress.coerceIn(0f, 1f),
             animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic)
         )
     }
@@ -262,7 +269,7 @@ fun StepTrackerCircle(steps: Int, goal: Int, progress: Float) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
-                contentDescription = "Steps",
+                contentDescription = "Steps walked today: $steps out of $goal steps goal",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(Sizing.iconXLarge)
             )
@@ -273,7 +280,7 @@ fun StepTrackerCircle(steps: Int, goal: Int, progress: Float) {
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "of $goal steps",
+                text = if (steps >= goal) "Goal reached! +${steps - goal}" else "of $goal steps",
                 style = AppTypography.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = Alpha.medium)
             )
@@ -286,7 +293,8 @@ fun StatsGrid(
     calories: Int,
     distance: Double,
     activeTime: Int,
-    weeklyAvgSteps: Int
+    weeklyAvgSteps: Int,
+    averageSpeed: Double
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -314,9 +322,9 @@ fun StatsGrid(
                 modifier = Modifier.weight(1f)
             )
              StatCard(
-                title = "Weekly Avg.",
-                value = "$weeklyAvgSteps steps",
-                icon = Icons.Default.CalendarToday,
+                title = "Avg. Speed",
+                value = "${String.format("%.1f", averageSpeed)} km/h",
+                icon = Icons.Default.Speed,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -379,11 +387,5 @@ fun RecentActivityItem(activity: ActivityLog) {
             color = MaterialTheme.colorScheme.primary
         )
     }
-}
-
-@Preview (showSystemUi = true)
-@Composable
-fun HomePreview() {
-    val navController = NavController(LocalContext.current)
 }
 
