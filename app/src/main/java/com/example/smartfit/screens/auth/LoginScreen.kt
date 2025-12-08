@@ -1,6 +1,7 @@
 package com.example.smartfit.screens.auth
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -40,7 +40,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.smartfit.R
-import com.example.smartfit.Routes
 import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
@@ -71,19 +70,23 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             composition = composition,
             progress = { progress }
         )
+        Column {
+            Text(
+                text = "Welcome to Smartfit",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Login to your account",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
 
-        Text(
-            text = "Welcome to SmartFit",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground // Adapts to Dark/Light
-        )
-        Text(
-            text = "Login to your account",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -134,6 +137,9 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 15.dp),
             onClick = { userViewModel.login() }
         ) {
             Text(

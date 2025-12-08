@@ -8,7 +8,7 @@ class UserRepository(context: Context) {
     
     private val userPreferences = UserPreferences(context)
     
-    val theme: Flow<Boolean> = userPreferences.themeFlow
+    val theme: Flow<Boolean> = userPreferences.themeFlow as Flow<Boolean>
     
     suspend fun saveTheme(isDarkMode: Boolean) {
         userPreferences.saveTheme(isDarkMode)

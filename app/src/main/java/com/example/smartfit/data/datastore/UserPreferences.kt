@@ -29,10 +29,11 @@ class UserPreferences(private val context: Context) {
     }
 
     // Get the theme setting (default to false if not set)
-    val themeFlow: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[THEME_KEY] ?: false
-        }
+    val themeFlow: Flow<Boolean?>
+        get() = context.dataStore.data
+            .map { preferences ->
+                preferences[THEME_KEY]
+            }
 
     // Save the theme setting
     suspend fun saveTheme(isDarkMode: Boolean) {

@@ -4,17 +4,41 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +46,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.smartfit.R
-import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.Routes
+import com.example.smartfit.ui.designsystem.Alpha
+import com.example.smartfit.ui.designsystem.AppButton
+import com.example.smartfit.ui.designsystem.AppCard
+import com.example.smartfit.ui.designsystem.AppScaffold
+import com.example.smartfit.ui.designsystem.AppTypography
+import com.example.smartfit.ui.designsystem.BorderWidth
+import com.example.smartfit.ui.designsystem.ButtonVariant
+import com.example.smartfit.ui.designsystem.SectionHeader
+import com.example.smartfit.ui.designsystem.Shapes
+import com.example.smartfit.ui.designsystem.Sizing
+import com.example.smartfit.ui.designsystem.Spacing
 import com.example.smartfit.utils.ValidationUtils
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
@@ -45,11 +80,6 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
                 actions = {
                     IconButton(onClick = { showEditDialog = true }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
@@ -62,8 +92,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.lg)
+            contentPadding = PaddingValues(Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             item {
                 // Profile Header
@@ -92,7 +122,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Spacing.lg))
+                    Spacer(modifier = Modifier.height(Spacing.md))
 
                     Text(
                         text = userName,
@@ -140,20 +170,22 @@ fun ProfileScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Dark Theme",
+                                text = "Switch Theme",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "Toggle dark mode",
+                                text = "Toggle dark / light mode",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
-
-                        /*Switch(
-                            checked = isDarkTheme ?: false,
-                            onCheckedChange = { themeViewModel.toggleTheme() }
-                        )*/
+                        Switch(
+                            // If isDarkTheme (saved pref) is null, fall back to system setting
+                            checked = isDarkTheme ?: isSystemInDarkTheme(),
+                            onCheckedChange = { isChecked ->
+                                themeViewModel.toggleTheme(isChecked)
+                            }
+                        )
                     }
                 }
             }
@@ -181,28 +213,21 @@ fun ProfileScreen(
                             title = "1000 Calories",
                             color = MaterialTheme.colorScheme.error
                         )
-                                                    AchievementItem(
-                                                        icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                                                        title = "50km Total",
-                                                        color = MaterialTheme.colorScheme.secondary
-                                                    )                    }
+                        AchievementItem(
+                            icon = Icons.AutoMirrored.Filled.DirectionsRun,
+                            title = "50km Total",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
             item {
-                // Account Card
-                AppCard(
+                AppButton(
+                    text = "Logout",
+                    onClick = { userViewModel.logout() },
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = 1
-                ) {
-                    SectionHeader(title = "Account")
-                    Spacer(modifier = Modifier.height(Spacing.md))
-                    AppButton(
-                        text = "Logout",
-                        onClick = { userViewModel.logout() },
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = ButtonVariant.Secondary
-                    )
-                }
+                    variant = ButtonVariant.Secondary
+                )
             }
         }
     }

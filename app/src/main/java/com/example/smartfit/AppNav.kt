@@ -31,12 +31,13 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
     val context = navController.context
     val application = context.applicationContext as Application
-    
-    // Initialize database and repository
+
+    // Initialize database and repositories. These are scoped to the AppNav lifecycle.
     val database = AppDatabase.getDatabase(context)
     val activityRepository = ActivityRepository(database.activityDao())
     val userRepository = UserRepository(context)
 
+    // Initialize ViewModels using their respective factories for dependency injection.
     val activityViewModel: ActivityViewModel = viewModel(
         factory = ActivityViewModelFactory(application, activityRepository, userRepository)
     )
@@ -44,26 +45,38 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         factory = UserViewModelFactory(userRepository)
     )
 
+    // Observe the login state from the UserViewModel.
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn && navController.currentDestination?.route == Routes.login) {
+    // This effect handles automatic navigation based on the user's login status.
+    LaunchedEffect(isLoggedIn, navController) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+        if (isLoggedIn && currentRoute == Routes.login) {
+            // If the user is logged in and on the login screen, navigate to home.
             navController.navigate(Routes.home) {
-                popUpTo(Routes.login) { inclusive = true }
+                popUpTo(Routes.login) { inclusive = true } // Clear login from back stack
             }
-        } else if (!isLoggedIn && navController.currentDestination?.route != Routes.login) {
-            // Note: This logic might need refinement to avoid loops if splash is initial
-             if (navController.currentDestination?.route != Routes.splash) {
-                // navController.navigate(Routes.login) {
-                //    popUpTo(Routes.home) { inclusive = true }
-                // }
+        } else if (!isLoggedIn && currentRoute != Routes.login && currentRoute != Routes.splash) {
+            // If the user is not logged in and not on login/splash, redirect to login.
+            navController.navigate(Routes.login) {
+                // Clear the entire back stack to prevent going back to a protected screen.
+                popUpTo(0) { inclusive = true }
             }
         }
     }
 
+    // NavHost is the container for all navigation destinations.
     NavHost(navController = navController, startDestination = Routes.splash) {
         composable(Routes.splash) {
             SplashScreen(navController, userViewModel)
+        }
+        composable(Routes.login) {
+            LoginScreen(
+                modifier = Modifier,
+                navController = navController,
+                userViewModel = userViewModel
+            )
         }
         composable(Routes.home) {
             HomeScreen(
@@ -75,10 +88,17 @@ fun AppNav(themeViewModel: ThemeViewModel) {
             )
         }
         composable(Routes.log) {
-            LogActivity(viewModel = activityViewModel, onBack = { navController.popBackStack() })
+            LogActivity(
+                viewModel = activityViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable(Routes.setting) {
-            SettingScreen(modifier = Modifier, navController, themeViewModel)
+            SettingScreen(
+                modifier = Modifier,
+                navController = navController,
+                themeViewModel = themeViewModel
+            )
         }
         composable(Routes.profile) {
             ProfileScreen(
@@ -86,15 +106,6 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 userViewModel = userViewModel,
                 onBack = { navController.popBackStack() }
             )
-        }
-        composable(Routes.login) {
-            LoginScreen(modifier = Modifier, navController, userViewModel)
-        }
-        composable("activity_detail/{activityId}") { backStackEntry ->
-            val activityId = backStackEntry.arguments?.getString("activityId")?.toLongOrNull()
-            activityId?.let { id ->
-                // ActivityDetailScreen(activityId = id, viewModel = activityViewModel, onBack = { navController.popBackStack() })
-            }
         }
     }
 }
