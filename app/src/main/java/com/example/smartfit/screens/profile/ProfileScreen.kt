@@ -17,13 +17,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,11 +44,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.smartfit.R
-import com.example.smartfit.Routes
 import com.example.smartfit.ui.designsystem.Alpha
 import com.example.smartfit.ui.designsystem.AppButton
 import com.example.smartfit.ui.designsystem.AppCard
@@ -66,8 +71,8 @@ import com.example.smartfit.viewmodel.UserViewModel
 @Composable
 fun ProfileScreen(
     themeViewModel: ThemeViewModel,
-    userViewModel: UserViewModel,
-    onBack: () -> Unit
+    userViewModel: UserViewModel
+
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
     var userName by remember { mutableStateOf("Hanni Pham") }
@@ -92,8 +97,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+            contentPadding = PaddingValues(Spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
         ) {
             item {
                 // Profile Header
@@ -122,7 +127,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Spacing.md))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Text(
                         text = userName,
@@ -145,7 +150,7 @@ fun ProfileScreen(
                     elevation = 1
                 ) {
                     SectionHeader(title = "Personal Information")
-                    Spacer(modifier = Modifier.height(Spacing.md))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
                     InfoRow("Age", "$userAge years")
                     InfoRow("Weight", "$userWeight kg")
@@ -161,7 +166,7 @@ fun ProfileScreen(
                     elevation = 1
                 ) {
                     SectionHeader(title = "Settings")
-                    Spacer(modifier = Modifier.height(Spacing.md))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -176,7 +181,7 @@ fun ProfileScreen(
                             Text(
                                 text = "Toggle dark / light mode",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                             )
                         }
                         Switch(
@@ -191,36 +196,39 @@ fun ProfileScreen(
             }
 
             item {
-                // Achievement Card
+                // Weekly Report Card - Refactored to match other cards
                 AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = 1
                 ) {
-                    SectionHeader(title = "Achievements")
-                    Spacer(modifier = Modifier.height(Spacing.md))
+                    SectionHeader(title = "Weekly Report")
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        AchievementItem(
-                            icon = Icons.Default.EmojiEvents,
-                            title = "7 Day Streak",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        AchievementItem(
+                        // Calories Card
+                        ReportCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Total Calories",
+                            value = "1200 kcal",
                             icon = Icons.Default.LocalFireDepartment,
-                            title = "1000 Calories",
-                            color = MaterialTheme.colorScheme.error
+                            iconTint = Color(0xFFFF5722) // Orange/Red
                         )
-                        AchievementItem(
-                            icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                            title = "50km Total",
-                            color = MaterialTheme.colorScheme.secondary
+
+                        // Steps Card
+                        ReportCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Avg Steps",
+                            value = "10,000 steps",
+                            icon = Icons.AutoMirrored.Filled.DirectionsWalk,
+                            iconTint = Color(0xFF4CAF50) // Green
                         )
                     }
                 }
             }
+
             item {
                 AppButton(
                     text = "Logout",
@@ -251,6 +259,58 @@ fun ProfileScreen(
 }
 
 @Composable
+fun ReportCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    value: String,
+    icon: ImageVector,
+    iconTint: Color
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = value,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
@@ -267,30 +327,6 @@ fun InfoRow(label: String, value: String) {
             text = value,
             style = AppTypography.typography.bodyMedium,
             fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-fun AchievementItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    color: androidx.compose.ui.graphics.Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = color,
-            modifier = Modifier.size(Sizing.iconLarge)
-        )
-        Spacer(modifier = Modifier.height(Spacing.xs))
-        Text(
-            text = title,
-            style = AppTypography.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
         )
     }
 }
