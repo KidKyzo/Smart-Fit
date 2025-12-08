@@ -106,5 +106,35 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 userViewModel = userViewModel,
             )
         }
+        composable(Routes.plan) {
+            com.example.smartfit.screens.plan.PlanScreen(
+                navController = navController,
+                viewModel = activityViewModel
+            )
+        }
+        composable(Routes.workoutList) {
+            com.example.smartfit.screens.plan.WorkoutListScreen(
+                navController = navController
+            )
+        }
+        composable(Routes.foodList) {
+            com.example.smartfit.screens.plan.FoodListScreen(
+                navController = navController
+            )
+        }
+        composable("${Routes.workoutDetail}/{workoutId}") { backStackEntry ->
+            val workoutId = backStackEntry.arguments?.getString("workoutId")?.toIntOrNull() ?: 0
+            com.example.smartfit.screens.plan.WorkoutDetailScreen(
+                navController = navController,
+                workoutId = workoutId
+            )
+        }
+        composable("${Routes.foodDetail}/{foodId}") { backStackEntry ->
+            val foodId = backStackEntry.arguments?.getString("foodId")?.toIntOrNull() ?: 0
+            com.example.smartfit.screens.plan.FoodDetailScreen(
+                navController = navController,
+                foodId = foodId
+            )
+        }
     }
 }

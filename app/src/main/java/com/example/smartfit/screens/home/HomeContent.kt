@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
+import com.example.smartfit.screens.home.components.DailyCalendarGraph
+import com.example.smartfit.screens.home.components.StepProgressBar
 import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.ActivityViewModel
 import java.text.SimpleDateFormat
@@ -45,6 +47,7 @@ fun HomeContent(
     val activeTime by activityViewModel.activeTime.collectAsState()
     val weeklyAvgSteps by activityViewModel.weeklyAvgSteps.collectAsState()
     val averageSpeed by activityViewModel.averageSpeed.collectAsState()
+    val dailyStepsLast7Days by activityViewModel.dailyStepsLast7Days.collectAsState()
 
     val progress = if (stepGoal > 0) steps.toFloat() / stepGoal.toFloat() else 0f
     
@@ -64,7 +67,8 @@ fun HomeContent(
                 distance = distance,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
-                averageSpeed = averageSpeed
+                averageSpeed = averageSpeed,
+                dailyStepsLast7Days = dailyStepsLast7Days
             )
         },
         tabletContent = {
@@ -79,7 +83,8 @@ fun HomeContent(
                 distance = distance,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
-                averageSpeed = averageSpeed
+                averageSpeed = averageSpeed,
+                dailyStepsLast7Days = dailyStepsLast7Days
             )
         }
     )
@@ -97,7 +102,8 @@ fun PhoneHomeLayout(
     distance: Double,
     activeTime: Int,
     weeklyAvgSteps: Int,
-    averageSpeed: Double
+    averageSpeed: Double,
+    dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
         topBar = { HomeHeader(currentDate) }
@@ -110,16 +116,82 @@ fun PhoneHomeLayout(
             verticalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
             item {
-                StepTrackerCircle(steps = steps, goal = goal, progress = progress)
+                // Daily Calendar Graph with Progress Bar below
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    DailyCalendarGraph(
+                        dailySteps = dailyStepsLast7Days,
+                        stepGoal = goal,
+                        currentSteps = steps,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    StepProgressBar(
+                        currentSteps = steps,
+                        goalSteps = goal,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             item {
-                StatsGrid(
-                    calories = calories,
-                    distance = distance,
-                    activeTime = activeTime,
-                    weeklyAvgSteps = weeklyAvgSteps,
-                    averageSpeed = averageSpeed
-                )
+                // Stats Grid - Active Time, Calories, Average Speed
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        StatCard(
+                            title = "Active Time",
+                            value = "$activeTime min",
+                            icon = Icons.Default.Timer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Calories",
+                            value = "$calories kcal",
+                            icon = Icons.Default.LocalFireDepartment,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        StatCard(
+                            title = "Avg. Speed",
+                            value = "${String.format("%.1f", averageSpeed)} km/h",
+                            icon = Icons.Default.Speed,
+                            modifier = Modifier.weight(1f)
+                        )
+                        // Placeholder for Calorie Intake
+                        AppCard(
+                            modifier = Modifier.weight(1f),
+                            elevation = 1
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Restaurant,
+                                    contentDescription = "Calorie Intake",
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    modifier = Modifier.size(Sizing.iconLarge)
+                                )
+                                Spacer(modifier = Modifier.height(Spacing.xs))
+                                Text(
+                                    text = "Calorie Intake",
+                                    style = AppTypography.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+                                )
+                                Text(
+                                    text = "Coming Soon",
+                                    style = AppTypography.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.low)
+                                )
+                            }
+                        }
+                    }
+                }
             }
             item {
                 SectionHeader(title = "Recent Activities", actionText = "View All") {
@@ -144,7 +216,8 @@ fun TabletHomeLayout(
     distance: Double,
     activeTime: Int,
     weeklyAvgSteps: Int,
-    averageSpeed: Double
+    averageSpeed: Double,
+    dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
         topBar = { TabletHeader(currentDate) }
@@ -161,19 +234,82 @@ fun TabletHomeLayout(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg)
             ) {
-                StepTrackerCircle(steps = steps, goal = goal, progress = progress)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    DailyCalendarGraph(
+                        dailySteps = dailyStepsLast7Days,
+                        stepGoal = goal,
+                        currentSteps = steps,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    StepProgressBar(
+                        currentSteps = steps,
+                        goalSteps = goal,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg)
             ) {
-                StatsGrid(
-                    calories = calories,
-                    distance = distance,
-                    activeTime = activeTime,
-                    weeklyAvgSteps = weeklyAvgSteps,
-                    averageSpeed = averageSpeed
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        StatCard(
+                            title = "Active Time",
+                            value = "$activeTime min",
+                            icon = Icons.Default.Timer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Calories",
+                            value = "$calories kcal",
+                            icon = Icons.Default.LocalFireDepartment,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        StatCard(
+                            title = "Avg. Speed",
+                            value = "${String.format("%.1f", averageSpeed)} km/h",
+                            icon = Icons.Default.Speed,
+                            modifier = Modifier.weight(1f)
+                        )
+                        AppCard(
+                            modifier = Modifier.weight(1f),
+                            elevation = 1
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Restaurant,
+                                    contentDescription = "Calorie Intake",
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    modifier = Modifier.size(Sizing.iconLarge)
+                                )
+                                Spacer(modifier = Modifier.height(Spacing.xs))
+                                Text(
+                                    text = "Calorie Intake",
+                                    style = AppTypography.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+                                )
+                                Text(
+                                    text = "Coming Soon",
+                                    style = AppTypography.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.low)
+                                )
+                            }
+                        }
+                    }
+                }
                 SectionHeader(title = "Recent Activities", actionText = "View All") {
                      // TODO: Navigate to full activity list
                 }

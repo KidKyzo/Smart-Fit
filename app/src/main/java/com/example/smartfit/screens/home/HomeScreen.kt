@@ -37,12 +37,12 @@ fun HomeScreen(
     userViewModel: UserViewModel
 ) {
     val navList = listOf(
+        NavItem("Plan", Icons.AutoMirrored.Filled.DirectionsWalk),
         NavItem("Home", Icons.Default.Home),
-        NavItem("Activity", Icons.AutoMirrored.Filled.DirectionsWalk),
         NavItem("Profile", Icons.Default.Person),
     )
 
-    var selectedIndex by remember{ mutableIntStateOf(0) }
+    var selectedIndex by remember{ mutableIntStateOf(1) } // Home is now in the middle
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -93,14 +93,14 @@ fun ScreenContent(
     onNavigate: (Int) -> Unit
 ) {
     when(selectedIndex) {
-        0 -> HomeContent(
+        0 -> com.example.smartfit.screens.plan.PlanScreen(
+            navController = navController,
+            viewModel = activityViewModel
+        )
+        1 -> HomeContent(
             modifier = modifier,
             navController = navController,
             activityViewModel = activityViewModel
-        )
-        1 -> LogActivity(
-            viewModel = activityViewModel, 
-            onBack = { onNavigate(0) }
         )
         2 -> ProfileScreen(
             themeViewModel = themeViewModel, 

@@ -56,6 +56,9 @@ class ActivityViewModel(
 
     private val _lastAddedActivity = MutableStateFlow<ActivityLog?>(null)
     val lastAddedActivity: StateFlow<ActivityLog?> = _lastAddedActivity.asStateFlow()
+    
+    private val _dailyStepsLast7Days = MutableStateFlow<List<Int>>(emptyList())
+    val dailyStepsLast7Days: StateFlow<List<Int>> = _dailyStepsLast7Days.asStateFlow()
 
     // Step Tracking
     private var stepSensorJob: Job? = null
@@ -213,6 +216,38 @@ class ActivityViewModel(
             val totalStepsWithLive = totalStepsInWeek + liveSteps
             
             _weeklyAvgSteps.value = if (recentActivities.isNotEmpty() || liveSteps > 0) totalStepsWithLive / 7 else 0
+            
+            // Calculate daily steps for last 7 days
+            val dailySteps = mutableListOf<Int>()
+            val today = Calendar.getInstance()
+            
+            for (i in 6 downTo 0) {
+                val dayStart = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, -i)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val dayEnd = Calendar.getInstance().apply {
+                    timeInMillis = dayStart.timeInMillis
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }
+                
+                val dayActivities = activities.filter { 
+                    it.date >= dayStart.timeInMillis && it.date < dayEnd.timeInMillis 
+                }
+                val daySteps = dayActivities.sumOf { it.steps ?: 0 }
+                
+                // If it's today, add live steps
+                if (i == 0) {
+                    dailySteps.add(daySteps + liveSteps)
+                } else {
+                    dailySteps.add(daySteps)
+                }
+            }
+            
+            _dailyStepsLast7Days.value = dailySteps
         }
     }
 
