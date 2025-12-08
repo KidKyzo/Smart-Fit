@@ -3,22 +3,14 @@ package com.example.smartfit.data.repository
 import android.content.Context
 import com.example.smartfit.data.datastore.UserPreferences
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class UserRepository(context: Context) {
     
     private val userPreferences = UserPreferences(context)
-    
-    val theme: Flow<Boolean> = userPreferences.themeFlow as Flow<Boolean>
-    
-    suspend fun saveTheme(isDarkMode: Boolean) {
-        userPreferences.saveTheme(isDarkMode)
-    }
-    
+
+    val theme: Flow<Boolean> = userPreferences.themeFlow.map { it ?: false }
     val stepGoal: Flow<Int> = userPreferences.stepGoalFlow
-    
-    suspend fun saveStepGoal(goal: Int) {
-        userPreferences.saveStepGoal(goal)
-    }
 
     val isLoggedIn: Flow<Boolean> = userPreferences.isLoggedInFlow
 

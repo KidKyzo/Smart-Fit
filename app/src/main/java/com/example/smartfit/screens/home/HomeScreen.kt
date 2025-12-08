@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Stairs
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -103,8 +104,7 @@ fun ScreenContent(
         )
         2 -> ProfileScreen(
             themeViewModel = themeViewModel, 
-            userViewModel = userViewModel, 
-            onBack = { onNavigate(0) }
+            userViewModel = userViewModel,
         )
     }
 }

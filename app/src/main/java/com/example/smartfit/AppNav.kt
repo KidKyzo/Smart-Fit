@@ -104,7 +104,6 @@ fun AppNav(themeViewModel: ThemeViewModel) {
             ProfileScreen(
                 themeViewModel = themeViewModel,
                 userViewModel = userViewModel,
-                onBack = { navController.popBackStack() }
             )
         }
     }
