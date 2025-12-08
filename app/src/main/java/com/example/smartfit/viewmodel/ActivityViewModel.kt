@@ -217,30 +217,45 @@ class ActivityViewModel(
             
             _weeklyAvgSteps.value = if (recentActivities.isNotEmpty() || liveSteps > 0) totalStepsWithLive / 7 else 0
             
-            // Calculate daily steps for last 7 days
+            // Calculate daily steps for current week (Monday to Sunday)
             val dailySteps = mutableListOf<Int>()
             val today = Calendar.getInstance()
+            val currentDayOfWeek = today.get(Calendar.DAY_OF_WEEK)
             
-            for (i in 6 downTo 0) {
-                val dayStart = Calendar.getInstance().apply {
-                    add(Calendar.DAY_OF_YEAR, -i)
+            // Calculate how many days back to Monday
+            val daysFromMonday = when (currentDayOfWeek) {
+                Calendar.SUNDAY -> 6      // Sunday is 6 days from Monday
+                Calendar.MONDAY -> 0      // Monday is 0 days from Monday
+                Calendar.TUESDAY -> 1
+                Calendar.WEDNESDAY -> 2
+                Calendar.THURSDAY -> 3
+                Calendar.FRIDAY -> 4
+                Calendar.SATURDAY -> 5
+                else -> 0
+            }
+            
+            // Loop through Monday (0) to Sunday (6)
+            for (dayOffset in 0..6) {
+                val targetDay = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, -daysFromMonday + dayOffset)
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
                 val dayEnd = Calendar.getInstance().apply {
-                    timeInMillis = dayStart.timeInMillis
+                    timeInMillis = targetDay.timeInMillis
                     add(Calendar.DAY_OF_YEAR, 1)
                 }
                 
                 val dayActivities = activities.filter { 
-                    it.date >= dayStart.timeInMillis && it.date < dayEnd.timeInMillis 
+                    it.date >= targetDay.timeInMillis && it.date < dayEnd.timeInMillis 
                 }
                 val daySteps = dayActivities.sumOf { it.steps ?: 0 }
                 
-                // If it's today, add live steps
-                if (i == 0) {
+                // If this is today, add live steps
+                val isToday = (dayOffset == daysFromMonday)
+                if (isToday) {
                     dailySteps.add(daySteps + liveSteps)
                 } else {
                     dailySteps.add(daySteps)

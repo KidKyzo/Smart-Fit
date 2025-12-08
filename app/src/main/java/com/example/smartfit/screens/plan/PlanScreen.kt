@@ -41,8 +41,8 @@ fun PlanScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(vertical = Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.lg)
+            contentPadding = PaddingValues(vertical = Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Workout Suggestions Section
             item {

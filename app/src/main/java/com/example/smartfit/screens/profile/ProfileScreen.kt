@@ -97,8 +97,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+            contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             item {
                 // Profile Header
@@ -127,17 +127,19 @@ fun ProfileScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    Spacer(modifier = Modifier.height(Spacing.md))
 
                     Text(
                         text = userName,
                         style = AppTypography.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
+                    
+                    Spacer(modifier = Modifier.height(Spacing.xs))
 
                     Text(
                         text = "Fitness Enthusiast",
-                        style = AppTypography.typography.bodyLarge,
+                        style = AppTypography.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                     )
                 }
@@ -206,7 +208,7 @@ fun ProfileScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
                         // Calories Card
                         ReportCard(
@@ -275,15 +277,15 @@ fun ReportCard(
     ) {
         Column(
             modifier = Modifier
-                .padding(12.dp)
+                .padding(Spacing.md)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.Start
         ) {
             Box(
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.White),
+                    .background(iconTint.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -293,17 +295,17 @@ fun ReportCard(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Spacing.sm))
 
             Text(
                 text = value,
-                fontSize = 22.sp,
+                style = AppTypography.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = title,
-                fontSize = 12.sp,
+                style = AppTypography.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -315,7 +317,7 @@ fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Spacing.sm),
+            .padding(vertical = Spacing.xs),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(

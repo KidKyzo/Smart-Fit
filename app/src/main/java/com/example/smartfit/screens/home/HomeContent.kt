@@ -1,29 +1,16 @@
 package com.example.smartfit.screens.home
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
-import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
 import com.example.smartfit.screens.home.components.DailyCalendarGraph
@@ -112,14 +99,14 @@ fun PhoneHomeLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(horizontal = Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.lg)
+            contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             item {
                 // Daily Calendar Graph with Progress Bar below
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     DailyCalendarGraph(
                         dailySteps = dailyStepsLast7Days,
@@ -363,109 +350,7 @@ fun TabletHeader(currentDate: String) {
     }
 }
 
-@Composable
-fun StepTrackerCircle(steps: Int, goal: Int, progress: Float) {
-    val animatedProgress = remember { Animatable(0f) }
 
-    LaunchedEffect(progress) {
-        animatedProgress.animateTo(
-            targetValue = progress.coerceIn(0f, 1f),
-            animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic)
-        )
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .padding(Spacing.xl),
-        contentAlignment = Alignment.Center
-    ) {
-        val strokeWidth = 20.dp
-        val primaryColor = MaterialTheme.colorScheme.primary
-        val surfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-
-        Canvas(modifier = Modifier.matchParentSize()) {
-            drawArc(
-                color = surfaceColor,
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                style = Stroke(width = strokeWidth.toPx())
-            )
-            drawArc(
-                color = primaryColor,
-                startAngle = -90f,
-                sweepAngle = 360 * animatedProgress.value,
-                useCenter = false,
-                style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-            )
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
-                contentDescription = "Steps walked today: $steps out of $goal steps goal",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(Sizing.iconXLarge)
-            )
-            Spacer(modifier = Modifier.height(Spacing.sm))
-            Text(
-                text = "$steps",
-                style = AppTypography.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = if (steps >= goal) "Goal reached! +${steps - goal}" else "of $goal steps",
-                style = AppTypography.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = Alpha.medium)
-            )
-        }
-    }
-}
-
-@Composable
-fun StatsGrid(
-    calories: Int,
-    distance: Double,
-    activeTime: Int,
-    weeklyAvgSteps: Int,
-    averageSpeed: Double
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(Spacing.md)
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            StatCard(
-                title = "Calories",
-                value = "$calories kcal",
-                icon = Icons.Default.LocalFireDepartment,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = "Distance",
-                value = "${String.format("%.2f", distance)} km",
-                icon = Icons.Default.Map,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-             StatCard(
-                title = "Active Time",
-                value = "$activeTime min",
-                icon = Icons.Default.Timer,
-                modifier = Modifier.weight(1f)
-            )
-             StatCard(
-                title = "Avg. Speed",
-                value = "${String.format("%.1f", averageSpeed)} km/h",
-                icon = Icons.Default.Speed,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
 
 @Composable
 fun RecentActivities(activities: List<ActivityLog>) {

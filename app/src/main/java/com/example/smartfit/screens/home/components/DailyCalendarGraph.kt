@@ -31,8 +31,22 @@ fun DailyCalendarGraph(
     modifier: Modifier = Modifier
 ) {
     val days = listOf("M", "T", "W", "T", "F", "S", "S")
-    val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val todayIndex = (today + 5) % 7 // Convert to Monday-based index
+    
+    // Get current day of week (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
+    val calendar = Calendar.getInstance()
+    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+    
+    // Convert to Monday-based index (0 = Monday, 1 = Tuesday, ..., 6 = Sunday)
+    val todayIndex = when (dayOfWeek) {
+        Calendar.SUNDAY -> 6      // Sunday is last day (index 6)
+        Calendar.MONDAY -> 0      // Monday is first day (index 0)
+        Calendar.TUESDAY -> 1
+        Calendar.WEDNESDAY -> 2
+        Calendar.THURSDAY -> 3
+        Calendar.FRIDAY -> 4
+        Calendar.SATURDAY -> 5
+        else -> 0
+    }
     
     // Ensure we have 7 days of data
     val stepData = dailySteps.takeLast(7).let { data ->
@@ -61,7 +75,7 @@ fun DailyCalendarGraph(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(Spacing.md),
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Title
@@ -82,7 +96,7 @@ fun DailyCalendarGraph(
             )
         }
         
-        Spacer(modifier = Modifier.height(Spacing.md))
+        Spacer(modifier = Modifier.height(Spacing.sm))
         
         // Graph
         Row(
@@ -104,7 +118,7 @@ fun DailyCalendarGraph(
             }
         }
         
-        Spacer(modifier = Modifier.height(Spacing.md))
+        Spacer(modifier = Modifier.height(Spacing.sm))
         
         // Current steps display
         Row(
@@ -150,7 +164,7 @@ private fun DayBar(
     }
     
     Column(
-        modifier = modifier.padding(horizontal = 4.dp),
+        modifier = modifier.padding(horizontal = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Bar

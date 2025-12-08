@@ -69,7 +69,7 @@ fun StepProgressBar(
             // Background bar
             Canvas(modifier = Modifier.fillMaxSize()) {
                 drawRoundRect(
-                    color = Color.Gray.copy(alpha = 0.2f),
+                    color = Color.Gray.copy(alpha = 0.15f),
                     size = Size(size.width, size.height),
                     cornerRadius = CornerRadius(10.dp.toPx(), 10.dp.toPx())
                 )
