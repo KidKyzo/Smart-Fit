@@ -1,12 +1,32 @@
 package com.example.smartfit.screens.home
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -14,10 +34,37 @@ import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
 import com.example.smartfit.screens.home.components.DailyCalendarGraph
 import com.example.smartfit.screens.home.components.StepProgressBar
-import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.ui.designsystem.Alpha
+import com.example.smartfit.ui.designsystem.AppCard
+import com.example.smartfit.ui.designsystem.AppScaffold
+import com.example.smartfit.ui.designsystem.AppTypography
+import com.example.smartfit.ui.designsystem.EmptyState
+import com.example.smartfit.ui.designsystem.ResponsiveLayout
+import com.example.smartfit.ui.designsystem.SectionHeader
+import com.example.smartfit.ui.designsystem.Sizing
+import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.ui.designsystem.StatCard
 import com.example.smartfit.viewmodel.ActivityViewModel
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+
+private fun getGreeting(): String {
+    // Get the current moment in time
+    val now = Clock.System.now()
+    // Convert it to the device's local date and time
+    val localTime = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+    // Determine the greeting based on the hour
+    return when (localTime.hour) {
+        in 0..11 -> "Good Morning!"
+        in 12..17 -> "Good Afternoon!"
+        else -> "Good Evening!"
+    }
+}
 
 @Composable
 fun HomeContent(
@@ -37,7 +84,15 @@ fun HomeContent(
 
     val progress = if (stepGoal > 0) steps.toFloat() / stepGoal.toFloat() else 0f
     
-    val currentDate = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date()) }
+//    val currentDate = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date()) }
+
+    val currentDate = remember {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val dayOfWeek = now.dayOfWeek.name.lowercase().replaceFirstChar { it.titlecase() }
+        val month = now.month.name.lowercase().replaceFirstChar { it.titlecase() }
+        val dayOfMonth = now.dayOfMonth
+        "$dayOfWeek, $month $dayOfMonth"
+    }
 
     ResponsiveLayout(
         modifier = modifier,
@@ -309,13 +364,17 @@ fun TabletHomeLayout(
 
 @Composable
 fun HomeHeader(currentDate: String) {
+    // Get the greeting only once
+    val greeting = remember { getGreeting() }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.lg, vertical = Spacing.lg)
     ) {
         Text(
-            text = "Good Morning!",
+            // Use the dynamic greeting here
+            text = greeting,
             style = AppTypography.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -330,13 +389,17 @@ fun HomeHeader(currentDate: String) {
 
 @Composable
 fun TabletHeader(currentDate: String) {
+    // Get the greeting only once
+    val greeting = remember { getGreeting() }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(Spacing.lg)
     ) {
         Text(
-            text = "Welcome Back",
+            // Use the dynamic greeting for the tablet header as well
+            text = greeting,
             style = AppTypography.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -348,8 +411,6 @@ fun TabletHeader(currentDate: String) {
         )
     }
 }
-
-
 
 @Composable
 fun RecentActivities(activities: List<ActivityLog>) {

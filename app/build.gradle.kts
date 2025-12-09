@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.lottie.compose)
-
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
 //viewmodel dependency
     implementation(libs.androidx.lifecycle.viewmodel.compose)

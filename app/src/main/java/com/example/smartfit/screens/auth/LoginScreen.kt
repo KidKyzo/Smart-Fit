@@ -1,7 +1,6 @@
 package com.example.smartfit.screens.auth
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,14 +41,20 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.smartfit.R
+import com.example.smartfit.Routes // Import your Routes object
 import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, userViewModel: UserViewModel) {
+    // Local state for the text fields
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // Observe the isLoggedIn state from the ViewModel
+    val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
+
+    // Lottie animation setup
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.man_running))
     val progress by animateLottieCompositionAsState(
         isPlaying = true,
@@ -55,6 +62,18 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
         iterations = LottieConstants.IterateForever,
         speed = 0.8f
     )
+
+    // *** FIX: This LaunchedEffect handles the navigation after a successful login ***
+    LaunchedEffect(key1 = isLoggedIn) {
+        if (isLoggedIn) {
+            navController.navigate(Routes.home) {
+                // Clear the navigation stack to prevent the user from going back to the login screen
+                popUpTo(Routes.login) {
+                    inclusive = true
+                }
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -83,10 +102,8 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
-
             )
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -105,10 +122,11 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             label = { Text(text = "Email") },
             leadingIcon = { Icon(imageVector = Icons.Default.Person4, contentDescription = "Email") },
             shape = RoundedCornerShape(10.dp),
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
-            colors = textFieldColors
+            colors = textFieldColors,
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -128,18 +146,21 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
                 )
             },
             shape = RoundedCornerShape(10.dp),
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
-            colors = textFieldColors
+            colors = textFieldColors,
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
+            // The onClick now only needs to call the login function.
+            // The LaunchedEffect above will handle the navigation.
             onClick = { userViewModel.login() }
         ) {
             Text(

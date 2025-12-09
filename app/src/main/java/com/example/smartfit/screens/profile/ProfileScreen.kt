@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.AlertDialog
@@ -52,12 +53,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.smartfit.R
 import com.example.smartfit.ui.designsystem.Alpha
-import com.example.smartfit.ui.designsystem.AppButton
 import com.example.smartfit.ui.designsystem.AppCard
 import com.example.smartfit.ui.designsystem.AppScaffold
 import com.example.smartfit.ui.designsystem.AppTypography
 import com.example.smartfit.ui.designsystem.BorderWidth
-import com.example.smartfit.ui.designsystem.ButtonVariant
 import com.example.smartfit.ui.designsystem.SectionHeader
 import com.example.smartfit.ui.designsystem.Shapes
 import com.example.smartfit.ui.designsystem.Sizing
@@ -79,6 +78,7 @@ fun ProfileScreen(
     var userWeight by remember { mutableStateOf("55") }
     var userHeight by remember { mutableStateOf("165") }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(value = false) }
 
     AppScaffold(
         topBar = {
@@ -87,6 +87,9 @@ fun ProfileScreen(
                 actions = {
                     IconButton(onClick = { showEditDialog = true }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
+                    }
+                    IconButton(onClick = { showLogoutDialog = true}) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
                     }
                 }
             )
@@ -133,7 +136,7 @@ fun ProfileScreen(
                         style = AppTypography.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Spacer(modifier = Modifier.height(Spacing.xs))
 
                     Text(
@@ -207,7 +210,7 @@ fun ProfileScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         // Calories Card
                         ReportCard(
@@ -229,15 +232,6 @@ fun ProfileScreen(
                     }
                 }
             }
-
-            item {
-                AppButton(
-                    text = "Logout",
-                    onClick = { userViewModel.logout() },
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = ButtonVariant.Secondary
-                )
-            }
         }
     }
 
@@ -254,6 +248,32 @@ fun ProfileScreen(
                 userWeight = weight
                 userHeight = height
                 showEditDialog = false
+            }
+        )
+    }
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Confirm Logout") },
+            text = { Text("Are you sure you want to log out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false //
+                        userViewModel.logout()  //
+                    }
+                ) {
+                    Text("Yes")
+
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false } // Just close the dialog
+                ) {
+                    Text("No")
+
+                }
             }
         )
     }

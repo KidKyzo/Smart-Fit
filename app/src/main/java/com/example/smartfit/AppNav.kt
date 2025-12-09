@@ -1,7 +1,6 @@
 package com.example.smartfit
 
 import android.app.Application
-import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,12 +13,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.smartfit.data.database.AppDatabase
 import com.example.smartfit.data.repository.ActivityRepository
 import com.example.smartfit.data.repository.UserRepository
+import com.example.smartfit.screens.SplashScreen
 import com.example.smartfit.screens.activity.LogActivity
 import com.example.smartfit.screens.auth.LoginScreen
 import com.example.smartfit.screens.home.HomeScreen
 import com.example.smartfit.screens.profile.ProfileScreen
 import com.example.smartfit.screens.profile.SettingScreen
-import com.example.smartfit.screens.splash.SplashScreen
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ActivityViewModelFactory
 import com.example.smartfit.viewmodel.ThemeViewModel
@@ -52,12 +51,8 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     LaunchedEffect(isLoggedIn, navController) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
 
-        if (isLoggedIn && currentRoute == Routes.login) {
-            // If the user is logged in and on the login screen, navigate to home.
-            navController.navigate(Routes.home) {
-                popUpTo(Routes.login) { inclusive = true } // Clear login from back stack
-            }
-        } else if (!isLoggedIn && currentRoute != Routes.login && currentRoute != Routes.splash) {
+        // This effect should ONLY handle forcing a user to the login screen if they are not authorized.
+        if (!isLoggedIn && currentRoute != Routes.login && currentRoute != Routes.splash) {
             // If the user is not logged in and not on login/splash, redirect to login.
             navController.navigate(Routes.login) {
                 // Clear the entire back stack to prevent going back to a protected screen.
