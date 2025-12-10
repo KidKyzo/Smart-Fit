@@ -97,8 +97,10 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.profile) {
             ProfileScreen(
+                navController = navController,
                 themeViewModel = themeViewModel,
                 userViewModel = userViewModel,
+                activityViewModel = activityViewModel
             )
         }
         composable(Routes.plan) {
@@ -129,6 +131,14 @@ fun AppNav(themeViewModel: ThemeViewModel) {
             com.example.smartfit.screens.plan.FoodDetailScreen(
                 navController = navController,
                 foodId = foodId
+            )
+        }
+        composable("${Routes.weeklyReport}/{weekOffset}") { backStackEntry ->
+            val weekOffset = backStackEntry.arguments?.getString("weekOffset")?.toIntOrNull() ?: 0
+            com.example.smartfit.screens.profile.WeeklyReportScreen(
+                navController = navController,
+                viewModel = activityViewModel,
+                weekOffset = weekOffset
             )
         }
     }

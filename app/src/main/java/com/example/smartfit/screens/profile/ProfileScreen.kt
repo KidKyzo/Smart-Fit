@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,11 +25,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.navigation.NavController
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -61,16 +67,19 @@ import com.example.smartfit.ui.designsystem.SectionHeader
 import com.example.smartfit.ui.designsystem.Shapes
 import com.example.smartfit.ui.designsystem.Sizing
 import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.screens.profile.components.BMIIndicator
 import com.example.smartfit.utils.ValidationUtils
+import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    navController: NavController,
     themeViewModel: ThemeViewModel,
-    userViewModel: UserViewModel
-
+    userViewModel: UserViewModel,
+    activityViewModel: ActivityViewModel
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
     var userName by remember { mutableStateOf("Hanni Pham") }
@@ -78,17 +87,32 @@ fun ProfileScreen(
     var userWeight by remember { mutableStateOf("55") }
     var userHeight by remember { mutableStateOf("165") }
     var showEditDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(value = false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
+    
+    // Calculate BMI
+    val weight = userWeight.toFloatOrNull() ?: 0f
+    val height = userHeight.toFloatOrNull() ?: 0f
+    val bmi = if (height > 0) weight / ((height / 100) * (height / 100)) else 0f
+    
+    // Weekly report data
+    val currentWeekDuration = activityViewModel.getWeeklyWorkoutDuration(0)
+    val lastWeekDuration = activityViewModel.getWeeklyWorkoutDuration(-1)
+    val durationDiff = currentWeekDuration - lastWeekDuration
+    
+    val currentWeekSteps = activityViewModel.getWeeklyAverageSteps(0)
+    val lastWeekSteps = activityViewModel.getWeeklyAverageSteps(-1)
+    val stepsDiff = currentWeekSteps - lastWeekSteps
 
     AppScaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
                 actions = {
-                    IconButton(onClick = { showEditDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
+                    IconButton(onClick = { showSettingsSheet = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
-                    IconButton(onClick = { showLogoutDialog = true}) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
                     }
                 }
@@ -146,6 +170,16 @@ fun ProfileScreen(
                     )
                 }
             }
+            
+            item {
+                // BMI Indicator
+                AppCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = 1
+                ) {
+                    BMIIndicator(bmi = bmi)
+                }
+            }
 
             item {
                 // User Stats Card
@@ -159,50 +193,17 @@ fun ProfileScreen(
                     InfoRow("Age", "$userAge years")
                     InfoRow("Weight", "$userWeight kg")
                     InfoRow("Height", "$userHeight cm")
-                    InfoRow("BMI", calculateBMI(userWeight.toFloatOrNull() ?: 0f, userHeight.toFloatOrNull() ?: 0f))
                 }
             }
 
-            item {
-                // Theme Settings Card
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = 1
-                ) {
-                    SectionHeader(title = "Settings")
-                    Spacer(modifier = Modifier.height(Spacing.sm))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Switch Theme",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = "Toggle dark / light mode",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                            )
-                        }
-                        Switch(
-                            // If isDarkTheme (saved pref) is null, fall back to system setting
-                            checked = isDarkTheme ?: isSystemInDarkTheme(),
-                            onCheckedChange = { isChecked ->
-                                themeViewModel.toggleTheme(isChecked)
-                            }
-                        )
-                    }
-                }
-            }
 
             item {
-                // Weekly Report Card - Refactored to match other cards
+                // Weekly Report Card - Enhanced with comparisons
                 AppCard(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate("weekly_report/0") },
                     elevation = 1
                 ) {
                     SectionHeader(title = "Weekly Report")
@@ -210,24 +211,30 @@ fun ProfileScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
-                        // Calories Card
+                        // Workout Duration Card
                         ReportCard(
                             modifier = Modifier.weight(1f),
-                            title = "Total Calories",
-                            value = "1200 kcal",
-                            icon = Icons.Default.LocalFireDepartment,
-                            iconTint = Color(0xFFFF5722) // Orange/Red
+                            title = "Total Workout",
+                            value = "$currentWeekDuration min",
+                            comparisonValue = if (durationDiff >= 0) "+$durationDiff min" else "$durationDiff min",
+                            comparisonColor = if (durationDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            icon = Icons.Default.FitnessCenter,
+                            iconTint = Color(0xFF2196F3), // Blue
+                            onClick = { navController.navigate("weekly_report/0") }
                         )
 
-                        // Steps Card
+                        // Average Steps Card
                         ReportCard(
                             modifier = Modifier.weight(1f),
-                            title = "Avg Steps",
-                            value = "10,000 steps",
+                            title = "Avg Daily Steps",
+                            value = "$currentWeekSteps",
+                            comparisonValue = if (stepsDiff >= 0) "+$stepsDiff" else "$stepsDiff",
+                            comparisonColor = if (stepsDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
                             icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                            iconTint = Color(0xFF4CAF50) // Green
+                            iconTint = Color(0xFF4CAF50), // Green
+                            onClick = { navController.navigate("weekly_report/0") }
                         )
                     }
                 }
@@ -277,6 +284,74 @@ fun ProfileScreen(
             }
         )
     }
+    
+    if (showSettingsSheet) {
+        AlertDialog(
+            onDismissRequest = { showSettingsSheet = false },
+            title = { Text("Settings") },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    // Theme Toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Dark Mode",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Toggle dark / light theme",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+                            )
+                        }
+                        Switch(
+                            checked = isDarkTheme ?: isSystemInDarkTheme(),
+                            onCheckedChange = { isChecked ->
+                                themeViewModel.toggleTheme(isChecked)
+                            }
+                        )
+                    }
+                    
+                    HorizontalDivider()
+                    
+                    // Edit Profile Button
+                    TextButton(
+                        onClick = {
+                            showSettingsSheet = false
+                            showEditDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.md))
+                            Text("Edit Profile")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSettingsSheet = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -285,14 +360,18 @@ fun ReportCard(
     title: String,
     value: String,
     icon: ImageVector,
-    iconTint: Color
+    iconTint: Color,
+    comparisonValue: String? = null,
+    comparisonColor: Color? = null,
+    onClick: (() -> Unit)? = null
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        )
+        ),
+        onClick = onClick ?: {}
     ) {
         Column(
             modifier = Modifier
@@ -322,11 +401,26 @@ fun ReportCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                text = title,
-                style = AppTypography.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+            ) {
+                Text(
+                    text = title,
+                    style = AppTypography.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                if (comparisonValue != null && comparisonColor != null) {
+                    Text(
+                        text = comparisonValue,
+                        style = AppTypography.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = comparisonColor
+                    )
+                }
+            }
         }
     }
 }

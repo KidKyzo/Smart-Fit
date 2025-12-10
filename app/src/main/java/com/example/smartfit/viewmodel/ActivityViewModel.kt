@@ -296,6 +296,80 @@ class ActivityViewModel(
     fun clearLastAddedActivity() {
         _lastAddedActivity.value = null
     }
+    
+    // Weekly Report Functions
+    fun getWeeklyWorkoutDuration(weekOffset: Int = 0): Int {
+        val activities = _activities.value
+        val weekActivities = getActivitiesByWeek(weekOffset)
+        return weekActivities.sumOf { it.duration }
+    }
+    
+    fun getWeeklyAverageSteps(weekOffset: Int = 0): Int {
+        val weekActivities = getActivitiesByWeek(weekOffset)
+        val totalSteps = weekActivities.sumOf { it.steps ?: 0 }
+        return if (weekActivities.isNotEmpty()) totalSteps / 7 else 0
+    }
+    
+    fun getDailyActivities(date: Long): List<ActivityLog> {
+        val activities = _activities.value
+        val dayStart = Calendar.getInstance().apply {
+            timeInMillis = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val dayEnd = Calendar.getInstance().apply {
+            timeInMillis = dayStart.timeInMillis
+            add(Calendar.DAY_OF_YEAR, 1)
+        }
+        
+        return activities.filter {
+            it.date >= dayStart.timeInMillis && it.date < dayEnd.timeInMillis
+        }
+    }
+    
+    fun getActivitiesByWeek(weekOffset: Int = 0): List<ActivityLog> {
+        val activities = _activities.value
+        val calendar = Calendar.getInstance()
+        
+        // Move to the target week
+        calendar.add(Calendar.WEEK_OF_YEAR, weekOffset)
+        
+        // Get Monday of that week
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val daysFromMonday = when (dayOfWeek) {
+            Calendar.SUNDAY -> 6
+            Calendar.MONDAY -> 0
+            Calendar.TUESDAY -> 1
+            Calendar.WEDNESDAY -> 2
+            Calendar.THURSDAY -> 3
+            Calendar.FRIDAY -> 4
+            Calendar.SATURDAY -> 5
+            else -> 0
+        }
+        
+        calendar.add(Calendar.DAY_OF_YEAR, -daysFromMonday)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        
+        val weekStart = calendar.timeInMillis
+        
+        // Get Sunday of that week
+        calendar.add(Calendar.DAY_OF_YEAR, 7)
+        val weekEnd = calendar.timeInMillis
+        
+        return activities.filter {
+            it.date >= weekStart && it.date < weekEnd
+        }
+    }
+    
+    fun getLongestActivityForDay(date: Long): ActivityLog? {
+        val dayActivities = getDailyActivities(date)
+        return dayActivities.maxByOrNull { it.duration }
+    }
 }
 
 class ActivityViewModelFactory(

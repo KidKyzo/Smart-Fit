@@ -103,8 +103,10 @@ fun ScreenContent(
             activityViewModel = activityViewModel
         )
         2 -> ProfileScreen(
+            navController = navController,
             themeViewModel = themeViewModel, 
             userViewModel = userViewModel,
+            activityViewModel = activityViewModel
         )
     }
 }

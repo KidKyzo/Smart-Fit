@@ -12,7 +12,9 @@ object Routes {
     var foodList = "food_list"
     var workoutDetail = "workout_detail"
     var foodDetail = "food_detail"
+    var weeklyReport = "weekly_report"
     
     fun workoutDetailRoute(workoutId: Int) = "workout_detail/$workoutId"
     fun foodDetailRoute(foodId: Int) = "food_detail/$foodId"
+    fun weeklyReportRoute(weekOffset: Int = 0) = "weekly_report/$weekOffset"
 }

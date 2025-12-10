@@ -198,12 +198,15 @@ fun ActivityCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddActivityDialog(
     onDismiss: () -> Unit,
     onAdd: (ActivityLog) -> Unit
 ) {
-    var activityType by remember { mutableStateOf("") }
+    val activityTypes = listOf("Running", "Jogging", "Cycling", "Hiking")
+    var selectedActivityType by remember { mutableStateOf(activityTypes[0]) }
+    var expanded by remember { mutableStateOf(false) }
     var duration by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
@@ -217,12 +220,38 @@ fun AddActivityDialog(
             Column(
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
-                OutlinedTextField(
-                    value = activityType,
-                    onValueChange = { activityType = it },
-                    label = { Text("Activity Type") },
-                    singleLine = true
-                )
+                // Activity Type Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedActivityType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Activity Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        activityTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = {
+                                    selectedActivityType = type
+                                    expanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = duration,
                     onValueChange = { duration = it },
@@ -259,7 +288,7 @@ fun AddActivityDialog(
             TextButton(
                 onClick = {
                     val activity = ActivityLog(
-                        activityType = activityType,
+                        activityType = selectedActivityType,
                         duration = duration.toIntOrNull() ?: 0,
                         calories = calories.toIntOrNull() ?: 0,
                         distance = distance.toDoubleOrNull() ?: 0.0,
@@ -269,7 +298,7 @@ fun AddActivityDialog(
                     )
                     onAdd(activity)
                 },
-                enabled = activityType.isNotEmpty() && duration.isNotEmpty() && calories.isNotEmpty()
+                enabled = duration.isNotEmpty() && calories.isNotEmpty()
             ) {
                 Text("Add")
             }
