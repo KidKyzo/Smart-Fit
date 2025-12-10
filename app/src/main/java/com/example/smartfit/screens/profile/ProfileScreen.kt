@@ -532,10 +532,3 @@ fun EditProfileDialog(
         }
     )
 }
-
-private fun calculateBMI(weight: Float, height: Float): String {
-    if (height == 0f) return "N/A"
-    val heightInMeters = height / 100
-    val bmi = weight / (heightInMeters * heightInMeters)
-    return String.format("%.1f", bmi)
-}
