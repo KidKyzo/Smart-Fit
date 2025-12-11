@@ -15,9 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Pre-designed layouts following the design system
+ * AppScaffold: Modern edge-to-edge scaffold with proper window insets handling
  */
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(
     modifier: Modifier = Modifier,
@@ -31,9 +31,10 @@ fun AppScaffold(
         topBar = topBar,
         bottomBar = bottomBar,
         floatingActionButton = floatingActionButton,
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        content(paddingValues)
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0) // Let content handle insets
+    ) { innerPadding ->
+        content(innerPadding)
     }
 }
 

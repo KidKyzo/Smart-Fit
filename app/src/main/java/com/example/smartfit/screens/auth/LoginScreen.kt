@@ -66,12 +66,8 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
     // *** FIX: This LaunchedEffect handles the navigation after a successful login ***
     LaunchedEffect(key1 = isLoggedIn) {
         if (isLoggedIn) {
-            navController.navigate(Routes.home) {
-                // Clear the navigation stack to prevent the user from going back to the login screen
-                popUpTo(Routes.login) {
-                    inclusive = true
-                }
-            }
+            // The navigation logic is now handled within the Button's onClick
+            // This LaunchedEffect can be removed or repurposed if needed for other side effects
         }
     }
 
@@ -159,9 +155,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
-            // The onClick now only needs to call the login function.
-            // The LaunchedEffect above will handle the navigation.
-            onClick = { userViewModel.login() }
+            onClick = {
+                userViewModel.login()
+                userViewModel.initializeDefaultProfile() // Initialize default user if needed
+            }
         ) {
             Text(
                 text = "Login",

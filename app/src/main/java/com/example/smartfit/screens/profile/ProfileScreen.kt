@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +41,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -63,6 +65,7 @@ import com.example.smartfit.ui.designsystem.AppCard
 import com.example.smartfit.ui.designsystem.AppScaffold
 import com.example.smartfit.ui.designsystem.AppTypography
 import com.example.smartfit.ui.designsystem.BorderWidth
+import com.example.smartfit.ui.designsystem.CompactTopAppBar
 import com.example.smartfit.ui.designsystem.SectionHeader
 import com.example.smartfit.ui.designsystem.Shapes
 import com.example.smartfit.ui.designsystem.Sizing
@@ -82,18 +85,26 @@ fun ProfileScreen(
     activityViewModel: ActivityViewModel
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
-    var userName by remember { mutableStateOf("Hanni Pham") }
-    var userAge by remember { mutableStateOf("25") }
-    var userWeight by remember { mutableStateOf("55") }
-    var userHeight by remember { mutableStateOf("165") }
+    // Load persisted user data
+    val userName by userViewModel.name.collectAsState()
+    val userAge by userViewModel.age.collectAsState()
+    val userWeight by userViewModel.weight.collectAsState()
+    val userHeight by userViewModel.height.collectAsState()
+    val userGender by userViewModel.gender.collectAsState()
+    
     var showEditDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     
-    // Calculate BMI
-    val weight = userWeight.toFloatOrNull() ?: 0f
-    val height = userHeight.toFloatOrNull() ?: 0f
-    val bmi = if (height > 0) weight / ((height / 100) * (height / 100)) else 0f
+    // Calculate BMI from persisted data
+    val bmi = remember(userWeight, userHeight) {
+        val weight = userWeight.toFloatOrNull() ?: 70f
+        val height = userHeight.toFloatOrNull() ?: 170f
+        if (height > 0) {
+            val heightInMeters = height / 100
+            weight / (heightInMeters * heightInMeters)
+        } else 0f
+    }
     
     // Weekly report data
     val currentWeekDuration = activityViewModel.getWeeklyWorkoutDuration(0)
@@ -106,7 +117,7 @@ fun ProfileScreen(
 
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text("Profile") },
                 actions = {
                     IconButton(onClick = { showSettingsSheet = true }) {
@@ -164,10 +175,18 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(Spacing.xs))
 
                     Text(
-                        text = "Fitness Enthusiast",
+                        text = "$userAge years • $userGender",
                         style = AppTypography.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                     )
+                    
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    
+                    Button(onClick = { showEditDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(Spacing.xs))
+                        Text("Edit Profile")
+                    }
                 }
             }
             
@@ -250,10 +269,8 @@ fun ProfileScreen(
             currentHeight = userHeight,
             onDismiss = { showEditDialog = false },
             onSave = { name, age, weight, height ->
-                userName = name
-                userAge = age
-                userWeight = weight
-                userHeight = height
+                // Save user data to database (replaces old data, no duplication)
+                userViewModel.saveProfile(name, age, weight, height, userGender)
                 showEditDialog = false
             }
         )

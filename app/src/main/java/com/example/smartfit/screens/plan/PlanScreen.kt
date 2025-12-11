@@ -31,7 +31,7 @@ fun PlanScreen(
 
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text("Activity Plan") }
             )
         }
