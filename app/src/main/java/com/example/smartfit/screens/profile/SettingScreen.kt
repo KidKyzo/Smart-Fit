@@ -85,7 +85,7 @@ fun SettingScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Dark Mode",
+                text = "Switch Mode",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onBackground

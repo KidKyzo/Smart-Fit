@@ -100,7 +100,8 @@ fun ScreenContent(
         1 -> HomeContent(
             modifier = modifier,
             navController = navController,
-            activityViewModel = activityViewModel
+            activityViewModel = activityViewModel,
+            userViewModel = userViewModel
         )
         2 -> ProfileScreen(
             navController = navController,

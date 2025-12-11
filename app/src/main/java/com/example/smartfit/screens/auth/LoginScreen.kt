@@ -1,32 +1,15 @@
 package com.example.smartfit.screens.auth
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person4
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,13 +18,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.*
 import com.example.smartfit.R
-import com.example.smartfit.Routes // Import your Routes object
+import com.example.smartfit.Routes
 import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
@@ -63,18 +42,18 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
         speed = 0.8f
     )
 
-    // *** FIX: This LaunchedEffect handles the navigation after a successful login ***
     LaunchedEffect(key1 = isLoggedIn) {
         if (isLoggedIn) {
-            // The navigation logic is now handled within the Button's onClick
-            // This LaunchedEffect can be removed or repurposed if needed for other side effects
+            navController.navigate(Routes.home) {
+                popUpTo(Routes.splash) { inclusive = true }
+            }
         }
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 160.dp),
+            .padding(top = 160.dp, start = 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -154,10 +133,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
         Button(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 15.dp),
+                .height(50.dp),
             onClick = {
                 userViewModel.login()
-                userViewModel.initializeDefaultProfile() // Initialize default user if needed
+                userViewModel.initializeDefaultProfile()
             }
         ) {
             Text(
@@ -166,12 +145,25 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             )
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Text(
-            text = "Forget Password?",
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.clickable {}
-        )
+        // --- NEW SIGN UP NAVIGATION ---
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Don't have an account? ",
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Sign Up",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    navController.navigate(Routes.register)
+                }
+            )
+        }
     }
 }

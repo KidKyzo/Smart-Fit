@@ -26,7 +26,6 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -41,9 +40,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,7 +55,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.smartfit.R
+import com.example.smartfit.screens.profile.components.BMIIndicator
 import com.example.smartfit.ui.designsystem.Alpha
 import com.example.smartfit.ui.designsystem.AppCard
 import com.example.smartfit.ui.designsystem.AppScaffold
@@ -70,7 +68,6 @@ import com.example.smartfit.ui.designsystem.SectionHeader
 import com.example.smartfit.ui.designsystem.Shapes
 import com.example.smartfit.ui.designsystem.Sizing
 import com.example.smartfit.ui.designsystem.Spacing
-import com.example.smartfit.screens.profile.components.BMIIndicator
 import com.example.smartfit.utils.ValidationUtils
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
@@ -91,11 +88,11 @@ fun ProfileScreen(
     val userWeight by userViewModel.weight.collectAsState()
     val userHeight by userViewModel.height.collectAsState()
     val userGender by userViewModel.gender.collectAsState()
-    
+
     var showEditDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
-    
+
     // Calculate BMI from persisted data
     val bmi = remember(userWeight, userHeight) {
         val weight = userWeight.toFloatOrNull() ?: 70f
@@ -105,12 +102,12 @@ fun ProfileScreen(
             weight / (heightInMeters * heightInMeters)
         } else 0f
     }
-    
+
     // Weekly report data
     val currentWeekDuration = activityViewModel.getWeeklyWorkoutDuration(0)
     val lastWeekDuration = activityViewModel.getWeeklyWorkoutDuration(-1)
     val durationDiff = currentWeekDuration - lastWeekDuration
-    
+
     val currentWeekSteps = activityViewModel.getWeeklyAverageSteps(0)
     val lastWeekSteps = activityViewModel.getWeeklyAverageSteps(-1)
     val stepsDiff = currentWeekSteps - lastWeekSteps
@@ -164,7 +161,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Spacing.md))
+                    Spacer(modifier = Modifier.height(Spacing.xs))
 
                     Text(
                         text = userName,
@@ -172,24 +169,10 @@ fun ProfileScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-
-                    Text(
-                        text = "$userAge years • $userGender",
-                        style = AppTypography.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                    )
-                    
                     Spacer(modifier = Modifier.height(Spacing.sm))
-                    
-                    Button(onClick = { showEditDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(Spacing.xs))
-                        Text("Edit Profile")
-                    }
                 }
             }
-            
+
             item {
                 // BMI Indicator
                 AppCard(
@@ -207,16 +190,14 @@ fun ProfileScreen(
                     elevation = 1
                 ) {
                     SectionHeader(title = "Personal Information")
-                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    Spacer(modifier = Modifier.height(Spacing.xs))
 
                     InfoRow("Age", "$userAge years")
                     InfoRow("Weight", "$userWeight kg")
                     InfoRow("Height", "$userHeight cm")
+                    InfoRow("Gender", userGender)
                 }
             }
-
-
-
             item {
                 // Weekly Report Card - Enhanced with comparisons
                 AppCard(
@@ -237,7 +218,8 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f),
                             title = "Total Workout",
                             value = "$currentWeekDuration min",
-                            comparisonValue = if (durationDiff >= 0) "+$durationDiff min" else "$durationDiff min",
+                            comparisonValue = if (durationDiff >= 0)
+                                "+$durationDiff min" else "$durationDiff min",
                             comparisonColor = if (durationDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
                             icon = Icons.Default.FitnessCenter,
                             iconTint = Color(0xFF2196F3), // Blue
@@ -267,10 +249,11 @@ fun ProfileScreen(
             currentAge = userAge,
             currentWeight = userWeight,
             currentHeight = userHeight,
+            currentGender = userGender, // Passed the current gender here
             onDismiss = { showEditDialog = false },
-            onSave = { name, age, weight, height ->
+            onSave = { name, age, weight, height, gender ->
                 // Save user data to database (replaces old data, no duplication)
-                userViewModel.saveProfile(name, age, weight, height, userGender)
+                userViewModel.saveProfile(name, age, weight, height, gender)
                 showEditDialog = false
             }
         )
@@ -283,8 +266,8 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showLogoutDialog = false //
-                        userViewModel.logout()  //
+                        showLogoutDialog = false
+                        userViewModel.logout()
                     }
                 ) {
                     Text("Yes")
@@ -293,7 +276,7 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showLogoutDialog = false } // Just close the dialog
+                    onClick = { showLogoutDialog = false }
                 ) {
                     Text("No")
 
@@ -301,7 +284,7 @@ fun ProfileScreen(
             }
         )
     }
-    
+
     if (showSettingsSheet) {
         AlertDialog(
             onDismissRequest = { showSettingsSheet = false },
@@ -318,7 +301,7 @@ fun ProfileScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Dark Mode",
+                                text = "Switch Mode",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
@@ -335,9 +318,9 @@ fun ProfileScreen(
                             }
                         )
                     }
-                    
+
                     HorizontalDivider()
-                    
+
                     // Edit Profile Button
                     TextButton(
                         onClick = {
@@ -383,12 +366,14 @@ fun ReportCard(
     onClick: (() -> Unit)? = null
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable(
+            enabled = onClick != null,
+            onClick = onClick ?: {}
+        ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        ),
-        onClick = onClick ?: {}
+        )
     ) {
         Column(
             modifier = Modifier
@@ -418,25 +403,21 @@ fun ReportCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-            ) {
+
+            Text(
+                text = title,
+                style = AppTypography.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (comparisonValue != null) {
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
-                    text = title,
-                    style = AppTypography.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = comparisonValue,
+                    style = AppTypography.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = comparisonColor ?: MaterialTheme.colorScheme.onSurface
                 )
-                
-                if (comparisonValue != null && comparisonColor != null) {
-                    Text(
-                        text = comparisonValue,
-                        style = AppTypography.typography.labelSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = comparisonColor
-                    )
-                }
             }
         }
     }
@@ -469,10 +450,12 @@ fun EditProfileDialog(
     currentAge: String,
     currentWeight: String,
     currentHeight: String,
+    currentGender: String, // Added missing parameter
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String) -> Unit
+    onSave: (String, String, String, String, String) -> Unit // Updated signature
 ) {
     var name by remember { mutableStateOf(currentName) }
+    var gender by remember { mutableStateOf(currentGender) } // Now works correctly
     var age by remember { mutableStateOf(currentAge) }
     var weight by remember { mutableStateOf(currentWeight) }
     var height by remember { mutableStateOf(currentHeight) }
@@ -485,6 +468,8 @@ fun EditProfileDialog(
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 val nameValidation = ValidationUtils.validateName(name)
+                // Now works because we added validateGender to ValidationUtils
+                val genderValidation = ValidationUtils.validateGender(gender)
                 val ageValidation = ValidationUtils.validateAge(age)
                 val weightValidation = ValidationUtils.validateWeight(weight)
                 val heightValidation = ValidationUtils.validateHeight(height)
@@ -497,6 +482,17 @@ fun EditProfileDialog(
                     isError = !nameValidation.isValid,
                     supportingText = if (!nameValidation.isValid) {
                         { Text(nameValidation.errorMessage) }
+                    } else null
+                )
+                // Fixed logic for Gender field
+                OutlinedTextField(
+                    value = gender,
+                    onValueChange = { gender = it }, // Corrected assignment
+                    label = { Text("Gender") },
+                    singleLine = true,
+                    isError = !genderValidation.isValid, // Corrected validation check
+                    supportingText = if (!genderValidation.isValid) {
+                        { Text(genderValidation.errorMessage) }
                     } else null
                 )
                 OutlinedTextField(
@@ -533,8 +529,10 @@ fun EditProfileDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, age, weight, height) },
+                // Passed all 5 arguments including gender
+                onClick = { onSave(name, age, weight, height, gender) },
                 enabled = ValidationUtils.validateName(name).isValid &&
+                        ValidationUtils.validateGender(gender).isValid &&
                         ValidationUtils.validateAge(age).isValid &&
                         ValidationUtils.validateWeight(weight).isValid &&
                         ValidationUtils.validateHeight(height).isValid

@@ -41,4 +41,12 @@ object ValidationUtils {
             else -> ValidationResult(true)
         }
     }
+
+    fun validateGender(gender: String): ValidationResult {
+        return if (gender.isNotBlank()) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Gender cannot be empty")
+        }
+    }
 }

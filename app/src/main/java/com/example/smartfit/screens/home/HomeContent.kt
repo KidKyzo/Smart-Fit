@@ -45,6 +45,7 @@ import com.example.smartfit.ui.designsystem.Sizing
 import com.example.smartfit.ui.designsystem.Spacing
 import com.example.smartfit.ui.designsystem.StatCard
 import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.UserViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -60,9 +61,9 @@ private fun getGreeting(): String {
 
     // Determine the greeting based on the hour
     return when (localTime.hour) {
-        in 0..11 -> "Good Morning!"
-        in 12..17 -> "Good Afternoon!"
-        else -> "Good Evening!"
+        in 0..11 -> "Good Morning"
+        in 12..17 -> "Good Afternoon"
+        else -> "Good Evening"
     }
 }
 
@@ -70,7 +71,8 @@ private fun getGreeting(): String {
 fun HomeContent(
     modifier: Modifier = Modifier,
     navController: NavController,
-    activityViewModel: ActivityViewModel
+    activityViewModel: ActivityViewModel,
+    userViewModel: UserViewModel
 ) {
     val activities by activityViewModel.activities.collectAsState()
     val steps by activityViewModel.steps.collectAsState()
@@ -82,9 +84,10 @@ fun HomeContent(
     val averageSpeed by activityViewModel.averageSpeed.collectAsState()
     val dailyStepsLast7Days by activityViewModel.dailyStepsLast7Days.collectAsState()
 
+    // Collect the user's name from the UserViewModel
+    val userName by userViewModel.name.collectAsState()
+
     val progress = if (stepGoal > 0) steps.toFloat() / stepGoal.toFloat() else 0f
-    
-//    val currentDate = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date()) }
 
     val currentDate = remember {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -100,6 +103,7 @@ fun HomeContent(
             PhoneHomeLayout(
                 activities = activities,
                 currentDate = currentDate,
+                userName = userName,
                 navController = navController,
                 steps = steps,
                 goal = stepGoal,
@@ -116,6 +120,7 @@ fun HomeContent(
             TabletHomeLayout(
                 activities = activities,
                 currentDate = currentDate,
+                userName = userName,
                 navController = navController,
                 steps = steps,
                 goal = stepGoal,
@@ -135,6 +140,7 @@ fun HomeContent(
 fun PhoneHomeLayout(
     activities: List<ActivityLog>,
     currentDate: String,
+    userName: String,
     navController: NavController,
     steps: Int,
     goal: Int,
@@ -147,7 +153,7 @@ fun PhoneHomeLayout(
     dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
-        topBar = { HomeHeader(currentDate) }
+        topBar = { HomeHeader(currentDate, userName) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -249,6 +255,7 @@ fun PhoneHomeLayout(
 fun TabletHomeLayout(
     activities: List<ActivityLog>,
     currentDate: String,
+    userName: String,
     navController: NavController,
     steps: Int,
     goal: Int,
@@ -261,7 +268,7 @@ fun TabletHomeLayout(
     dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
-        topBar = { TabletHeader(currentDate) }
+        topBar = { TabletHeader(currentDate, userName) }
     ) { padding ->
         Row(
             modifier = Modifier
@@ -352,7 +359,7 @@ fun TabletHomeLayout(
                     }
                 }
                 SectionHeader(title = "Recent Activities", actionText = "View All") {
-                     // TODO: Navigate to full activity list
+                    // TODO: Navigate to full activity list
                 }
                 Spacer(modifier = Modifier.height(Spacing.sm))
                 RecentActivities(activities = activities.take(5))
@@ -363,7 +370,7 @@ fun TabletHomeLayout(
 
 
 @Composable
-fun HomeHeader(currentDate: String) {
+fun HomeHeader(currentDate: String, userName: String) {
     // Get the greeting only once
     val greeting = remember { getGreeting() }
 
@@ -373,8 +380,8 @@ fun HomeHeader(currentDate: String) {
             .padding(horizontal = Spacing.lg, vertical = Spacing.lg)
     ) {
         Text(
-            // Use the dynamic greeting here
-            text = greeting,
+            // Use the dynamic greeting combined with the username
+            text = "$greeting, $userName!",
             style = AppTypography.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -388,7 +395,7 @@ fun HomeHeader(currentDate: String) {
 }
 
 @Composable
-fun TabletHeader(currentDate: String) {
+fun TabletHeader(currentDate: String, userName: String) {
     // Get the greeting only once
     val greeting = remember { getGreeting() }
 
@@ -398,8 +405,8 @@ fun TabletHeader(currentDate: String) {
             .padding(Spacing.lg)
     ) {
         Text(
-            // Use the dynamic greeting for the tablet header as well
-            text = greeting,
+            // Use the dynamic greeting combined with the username
+            text = "$greeting, $userName!",
             style = AppTypography.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -469,4 +476,3 @@ fun RecentActivityItem(activity: ActivityLog) {
         )
     }
 }
-

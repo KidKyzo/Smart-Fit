@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartfit.Routes
 import com.example.smartfit.data.model.MockFoodData
 import com.example.smartfit.ui.designsystem.*
 
@@ -23,7 +24,7 @@ fun FoodDetailScreen(
     foodId: Int
 ) {
     val food = remember { MockFoodData.getFoodById(foodId) }
-    
+
     if (food == null) {
         // Handle food not found
         Box(
@@ -34,7 +35,7 @@ fun FoodDetailScreen(
         }
         return
     }
-    
+
     AppScaffold(
         topBar = {
             TopAppBar(
@@ -78,7 +79,7 @@ fun FoodDetailScreen(
                     }
                 }
             }
-            
+
             // Food name and serving size
             item {
                 Column {
@@ -95,7 +96,7 @@ fun FoodDetailScreen(
                     )
                 }
             }
-            
+
             // Nutritional information
             item {
                 AppCard(elevation = 1) {
@@ -106,7 +107,7 @@ fun FoodDetailScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(Spacing.md))
-                        
+
                         NutritionRow("Calories", "${food.calories} kcal")
                         HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
                         NutritionRow("Protein", food.protein)
@@ -117,7 +118,7 @@ fun FoodDetailScreen(
                     }
                 }
             }
-            
+
             // Description
             item {
                 AppCard(elevation = 1) {

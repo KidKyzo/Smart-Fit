@@ -7,6 +7,10 @@ object Routes {
     var setting = "setting_screen"
     var profile = "profile_screen"
     var login = "login_screen"
+
+    var register = "sign_up_step_1"
+    var biodata = "sign_up_step_2"
+
     var plan = "plan_screen"
     var workoutList = "workout_list"
     var foodList = "food_list"

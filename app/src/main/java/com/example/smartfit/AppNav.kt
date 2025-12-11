@@ -25,7 +25,11 @@ import com.example.smartfit.data.repository.ActivityRepository
 import com.example.smartfit.data.repository.UserRepository
 import com.example.smartfit.screens.SplashScreen
 import com.example.smartfit.screens.activity.LogActivity
+import com.example.smartfit.screens.auth.BioDataScreen
 import com.example.smartfit.screens.auth.LoginScreen
+import com.example.smartfit.screens.auth.RegisterScreen
+import com.example.smartfit.screens.auth.RegisterScreen
+import com.example.smartfit.screens.auth.BioDataScreen
 import com.example.smartfit.screens.home.HomeContent
 import com.example.smartfit.screens.profile.ProfileScreen
 import com.example.smartfit.screens.profile.SettingScreen
@@ -103,13 +107,23 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                     userViewModel = userViewModel
                 )
             }
+            composable(Routes.register) {
+                RegisterScreen(navController = navController)
+            }
+            composable(Routes.biodata) {
+                BioDataScreen(
+                    navController = navController,
+                    userViewModel = userViewModel
+                )
+            }
             
             // Main bottom navigation screens (top-level routes)
             composable(Routes.home) {
                 HomeContent(
                     modifier = Modifier,
                     navController = navController,
-                    activityViewModel = activityViewModel
+                    activityViewModel = activityViewModel,
+                    userViewModel = userViewModel
                 )
             }
             composable(Routes.plan) {

@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,8 @@ class UserPreferences(private val context: Context) {
         val THEME_KEY = booleanPreferencesKey("is_dark_mode")
         val STEP_GOAL_KEY = intPreferencesKey("step_goal")
         val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
+
+        val USER_DESCRIPTION_KEY = stringPreferencesKey("user_description")
         
         // Keys for step tracking
         val LAST_STEP_COUNT_KEY = intPreferencesKey("last_step_count")
