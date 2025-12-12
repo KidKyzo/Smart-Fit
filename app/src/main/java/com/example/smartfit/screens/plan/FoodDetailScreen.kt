@@ -1,11 +1,26 @@
 package com.example.smartfit.screens.plan
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -13,9 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.smartfit.Routes
 import com.example.smartfit.data.model.MockFoodData
-import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.ui.designsystem.Alpha
+import com.example.smartfit.ui.designsystem.AppCard
+import com.example.smartfit.ui.designsystem.AppScaffold
+import com.example.smartfit.ui.designsystem.AppTypography
+import com.example.smartfit.ui.designsystem.CompactTopAppBar
+import com.example.smartfit.ui.designsystem.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +54,9 @@ fun FoodDetailScreen(
         }
         return
     }
-
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text(food.title) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -55,7 +73,7 @@ fun FoodDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.lg),
+            contentPadding = PaddingValues(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Image section

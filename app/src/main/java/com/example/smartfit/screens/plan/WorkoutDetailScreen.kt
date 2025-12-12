@@ -35,10 +35,10 @@ fun WorkoutDetailScreen(
         }
         return
     }
-    
+
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text(workout.title) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -55,7 +55,7 @@ fun WorkoutDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.lg),
+            contentPadding = PaddingValues(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Image/GIF section
@@ -79,7 +79,7 @@ fun WorkoutDetailScreen(
                     }
                 }
             }
-            
+
             // Workout info
             item {
                 Column {
@@ -109,7 +109,7 @@ fun WorkoutDetailScreen(
                     }
                 }
             }
-            
+
             // Description
             item {
                 AppCard(elevation = 1) {
@@ -128,51 +128,60 @@ fun WorkoutDetailScreen(
                     }
                 }
             }
-            
+
             // Step-by-step instructions
             item {
                 AppCard(elevation = 1) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.md) // Add padding to the whole card
+                    ) {
+                        // Instruction Header
                         Text(
                             text = "Instructions",
                             style = AppTypography.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(Spacing.md))
-                    }
-                }
-            }
-            
-            itemsIndexed(workout.steps) { index, step ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                ) {
-                    // Step number
-                    Surface(
-                        shape = Shapes.circle,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Text(
-                                text = "${index + 1}",
-                                style = AppTypography.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold
-                            )
+
+                        // A Column to list out each step
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                            workout.steps.forEachIndexed { index, step ->
+                                // Each step is a Row
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                                    verticalAlignment = Alignment.Top // Aligns number and text to the top
+                                ) {
+                                    // Step number circle
+                                    Surface(
+                                        shape = Shapes.circle,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Text(
+                                                text = "${index + 1}",
+                                                style = AppTypography.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+
+                                    // Step description text
+                                    Text(
+                                        text = step,
+                                        style = AppTypography.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
                         }
                     }
-                    
-                    // Step description
-                    Text(
-                        text = step,
-                        style = AppTypography.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
         }
