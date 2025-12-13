@@ -228,7 +228,7 @@ fun BioDataScreen(
                             age = age,
                             weight = weight.ifEmpty { "70" },
                             height = height.ifEmpty { "170" },
-                            gender = "Not specified"
+                            gender = gender
                         )
                     }
                 },
