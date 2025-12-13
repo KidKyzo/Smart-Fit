@@ -34,6 +34,17 @@ fun PlanScreen(
             CompactTopAppBar(
                 title = { Text("Activity Plan") }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Activity"
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -77,9 +88,9 @@ fun PlanScreen(
                         .padding(horizontal = Spacing.lg)
                 ) {
                     SectionHeader(
-                        title = "Recent Activities",
-                        actionText = "Add",
-                        onActionClick = { showAddDialog = true }
+                        title = "Activity Log",
+                        actionText = "View All",
+                        onActionClick = { navController.navigate("log_activity") }
                     )
                     Spacer(modifier = Modifier.height(Spacing.md))
                     
@@ -95,8 +106,7 @@ fun PlanScreen(
                         activities.take(3).forEach { activity ->
                             ActivityCard(
                                 activity = activity,
-                                onDelete = { viewModel.deleteActivity(activity) },
-                                onEdit = { viewModel.selectActivity(activity) }
+                                onDelete = { viewModel.deleteActivity(activity) }
                             )
                             Spacer(modifier = Modifier.height(Spacing.md))
                         }

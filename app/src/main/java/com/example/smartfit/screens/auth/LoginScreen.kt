@@ -26,12 +26,14 @@ import com.example.smartfit.viewmodel.UserViewModel
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, userViewModel: UserViewModel) {
     // Local state for the text fields
-    var email by remember { mutableStateOf("") }
+    var usernameOrEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Observe the isLoggedIn state from the ViewModel
+    // Observe states from the ViewModel
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
+    val isAuthenticating by userViewModel.isAuthenticating.collectAsState()
+    val loginError by userViewModel.loginError.collectAsState()
 
     // Lottie animation setup
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.man_running))
@@ -92,10 +94,13 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
         )
 
         TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(text = "Email") },
-            leadingIcon = { Icon(imageVector = Icons.Default.Person4, contentDescription = "Email") },
+            value = usernameOrEmail,
+            onValueChange = { 
+                usernameOrEmail = it
+                userViewModel.clearLoginError()
+            },
+            label = { Text(text = "Username or Email") },
+            leadingIcon = { Icon(imageVector = Icons.Default.Person4, contentDescription = "Username or Email") },
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,7 +113,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
 
         TextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                userViewModel.clearLoginError()
+            },
             label = { Text(text = "Password") },
             leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "Password") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -128,21 +136,48 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             singleLine = true
         )
 
+        // Show error message if login fails
+        if (loginError != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = loginError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 15.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(50.dp)
+                .padding(horizontal = 15.dp),
             onClick = {
-                userViewModel.login()
-                userViewModel.initializeDefaultProfile()
-            }
+                // DEBUG MODE: Empty inputs bypass validation
+                if (usernameOrEmail.isEmpty() && password.isEmpty()) {
+                    userViewModel.login()
+                    userViewModel.initializeDefaultProfile()
+                } else {
+                    // Normal login with validation
+                    userViewModel.validateAndLogin(usernameOrEmail, password)
+                }
+            },
+            enabled = !isAuthenticating
         ) {
-            Text(
-                text = "Login",
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+            if (isAuthenticating) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = "Login",
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
 
         // --- NEW SIGN UP NAVIGATION ---

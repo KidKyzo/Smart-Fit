@@ -5,13 +5,22 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.smartfit.data.database.User
 import com.example.smartfit.data.repository.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
+
+    // Loading states
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    private val _isAuthenticating = MutableStateFlow(false)
+    val isAuthenticating: StateFlow<Boolean> = _isAuthenticating.asStateFlow()
 
     val isLoggedIn: StateFlow<Boolean> = userRepository.isLoggedIn
         .stateIn(
@@ -60,6 +69,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
      */
     fun saveProfile(name: String, age: String, weight: String, height: String, gender: String) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val ageInt = age.toIntOrNull() ?: 25
                 val weightFloat = weight.toFloatOrNull() ?: 70f
@@ -74,6 +84,8 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
                 )
             } catch (e: Exception) {
                 // Handle error (could add error state if needed)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -100,6 +112,85 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
                 // Silently fail - user can set profile later
             }
         }
+    }
+    
+    // ========== Authentication Methods ==========
+    
+    private val _loginError = MutableStateFlow<String?>(null)
+    val loginError: StateFlow<String?> = _loginError.asStateFlow()
+    
+    /**
+     * Register new user with credentials and profile
+     */
+    fun register(
+        username: String,
+        email: String,
+        password: String,
+        name: String,
+        age: String,
+        weight: String,
+        height: String,
+        gender: String
+    ) {
+        viewModelScope.launch {
+            _isAuthenticating.value = true
+            try {
+                // Save credentials
+                userRepository.saveCredentials(username, email, password)
+                
+                // Save profile
+                val ageInt = age.toIntOrNull() ?: 25
+                val weightFloat = weight.toFloatOrNull() ?: 70f
+                val heightFloat = height.toFloatOrNull() ?: 170f
+                
+                userRepository.saveUserProfile(
+                    name = name,
+                    age = ageInt,
+                    weight = weightFloat,
+                    height = heightFloat,
+                    gender = gender
+                )
+                
+                // Auto-login after registration
+                userRepository.login()
+                
+                _loginError.value = null
+            } catch (e: Exception) {
+                _loginError.value = "Registration failed: ${e.message}"
+            } finally {
+                _isAuthenticating.value = false
+            }
+        }
+    }
+    
+    /**
+     * Validate credentials and login
+     * Returns error message if validation fails
+     */
+    fun validateAndLogin(usernameOrEmail: String, password: String) {
+        viewModelScope.launch {
+            _isAuthenticating.value = true
+            try {
+                val isValid = userRepository.validateCredentials(usernameOrEmail, password)
+                if (isValid) {
+                    userRepository.login()
+                    _loginError.value = null
+                } else {
+                    _loginError.value = "Invalid username/email or password"
+                }
+            } catch (e: Exception) {
+                _loginError.value = "Login failed: ${e.message}"
+            } finally {
+                _isAuthenticating.value = false
+            }
+        }
+    }
+    
+    /**
+     * Clear login error
+     */
+    fun clearLoginError() {
+        _loginError.value = null
     }
 }
 

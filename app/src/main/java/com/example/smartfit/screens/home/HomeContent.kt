@@ -81,7 +81,6 @@ fun HomeContent(
     val distance by activityViewModel.distance.collectAsState()
     val activeTime by activityViewModel.activeTime.collectAsState()
     val weeklyAvgSteps by activityViewModel.weeklyAvgSteps.collectAsState()
-    val averageSpeed by activityViewModel.averageSpeed.collectAsState()
     val dailyStepsLast7Days by activityViewModel.dailyStepsLast7Days.collectAsState()
 
     // Collect the user's name from the UserViewModel
@@ -104,15 +103,11 @@ fun HomeContent(
                 activities = activities,
                 currentDate = currentDate,
                 userName = userName,
-                navController = navController,
                 steps = steps,
                 goal = stepGoal,
-                progress = progress,
                 calories = calories,
-                distance = distance,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
-                averageSpeed = averageSpeed,
                 dailyStepsLast7Days = dailyStepsLast7Days
             )
         },
@@ -129,7 +124,6 @@ fun HomeContent(
                 distance = distance,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
-                averageSpeed = averageSpeed,
                 dailyStepsLast7Days = dailyStepsLast7Days
             )
         }
@@ -141,15 +135,11 @@ fun PhoneHomeLayout(
     activities: List<ActivityLog>,
     currentDate: String,
     userName: String,
-    navController: NavController,
     steps: Int,
     goal: Int,
-    progress: Float,
     calories: Int,
-    distance: Double,
     activeTime: Int,
     weeklyAvgSteps: Int,
-    averageSpeed: Double,
     dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
@@ -202,12 +192,6 @@ fun PhoneHomeLayout(
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                        StatCard(
-                            title = "Avg. Speed",
-                            value = "${String.format("%.1f", averageSpeed)} km/h",
-                            icon = Icons.Default.Speed,
-                            modifier = Modifier.weight(1f)
-                        )
                         // Placeholder for Calorie Intake
                         AppCard(
                             modifier = Modifier.weight(1f),
@@ -241,10 +225,8 @@ fun PhoneHomeLayout(
                 }
             }
             item {
-                SectionHeader(title = "Recent Activities", actionText = "View All") {
-                    // TODO: Navigate to full activity list
-                }
-                Spacer(modifier = Modifier.height(Spacing.sm))
+                // Recent Activities Section
+                SectionHeader(title = "Recent Activities")
                 RecentActivities(activities = activities.take(3))
             }
         }
@@ -264,7 +246,6 @@ fun TabletHomeLayout(
     distance: Double,
     activeTime: Int,
     weeklyAvgSteps: Int,
-    averageSpeed: Double,
     dailyStepsLast7Days: List<Int>
 ) {
     AppScaffold(
@@ -322,12 +303,6 @@ fun TabletHomeLayout(
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                        StatCard(
-                            title = "Avg. Speed",
-                            value = "${String.format("%.1f", averageSpeed)} km/h",
-                            icon = Icons.Default.Speed,
-                            modifier = Modifier.weight(1f)
-                        )
                         AppCard(
                             modifier = Modifier.weight(1f),
                             elevation = 1
@@ -358,9 +333,7 @@ fun TabletHomeLayout(
                         }
                     }
                 }
-                SectionHeader(title = "Recent Activities", actionText = "View All") {
-                    // TODO: Navigate to full activity list
-                }
+                SectionHeader(title = "Recent Activities")
                 Spacer(modifier = Modifier.height(Spacing.sm))
                 RecentActivities(activities = activities.take(5))
             }

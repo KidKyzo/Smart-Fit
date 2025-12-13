@@ -44,8 +44,16 @@ fun LogActivity(
 
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text("Activity Log") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Activity")
@@ -85,8 +93,7 @@ fun LogActivity(
                         items(activities) { activity ->
                             ActivityCard(
                                 activity = activity,
-                                onDelete = { viewModel.deleteActivity(activity) },
-                                onEdit = { viewModel.selectActivity(activity) }
+                                onDelete = { viewModel.deleteActivity(activity) }
                             )
                         }
                     }
@@ -109,8 +116,7 @@ fun LogActivity(
 @Composable
 fun ActivityCard(
     activity: ActivityLog,
-    onDelete: () -> Unit,
-    onEdit: () -> Unit
+    onDelete: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -129,21 +135,12 @@ fun ActivityCard(
                 style = AppTypography.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            Row {
-                IconButton(onClick = onEdit) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit activity",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete activity",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete activity",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
 

@@ -8,13 +8,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [ActivityLog::class, User::class],
-    version = 3, // Incremented to force fresh migration
+    entities = [ActivityLog::class, User::class, UserCredentials::class],
+    version = 4, // Added UserCredentials entity
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun userDao(): UserDao
+    abstract fun credentialsDao(): CredentialsDao
 
     companion object {
         @Volatile

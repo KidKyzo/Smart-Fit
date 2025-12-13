@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -23,14 +24,44 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
 
+// Validation functions
+private fun isValidEmail(email: String): Boolean {
+    return email.contains("@") && 
+           email.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))
+}
+
+private fun isValidPassword(password: String): Boolean {
+    val hasMinLength = password.length >= 6
+    val hasCapital = password.any { it.isUpperCase() }
+    val hasSpecial = password.any { !it.isLetterOrDigit() }
+    return hasMinLength && hasCapital && hasSpecial
+}
+
+private fun getPasswordError(password: String): String? {
+    return when {
+        password.isEmpty() -> null
+        password.length < 6 -> "Password must be at least 6 characters"
+        !password.any { it.isUpperCase() } -> "Password must contain at least 1 capital letter"
+        !password.any { !it.isLetterOrDigit() } -> "Password must contain at least 1 special character"
+        else -> null
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavController) {
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    // Error states
+    var usernameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -78,19 +109,44 @@ fun RegisterScreen(navController: NavController) {
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
-                cursorColor = MaterialTheme.colorScheme.primary
+                cursorColor = MaterialTheme.colorScheme.primary,
+                errorContainerColor = MaterialTheme.colorScheme.surface
             )
+
+            // Username Field
+            TextField(
+                value = username,
+                onValueChange = { 
+                    username = it
+                    usernameError = if (it.isEmpty()) null else if (it.length < 3) "Username must be at least 3 characters" else null
+                },
+                label = { Text("Username") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors,
+                singleLine = true,
+                isError = usernameError != null,
+                supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Email Field
             TextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    emailError = if (it.isEmpty()) null else if (!isValidEmail(it)) "Invalid email format" else null
+                },
                 label = { Text("Email") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
-                singleLine = true
+                singleLine = true,
+                isError = emailError != null,
+                supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -98,21 +154,31 @@ fun RegisterScreen(navController: NavController) {
             // Password Field
             TextField(
                 value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image =
-                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                onValueChange = { 
+                    password = it
+                    passwordError = getPasswordError(it)
+                    if (confirmPassword.isNotEmpty()) {
+                        confirmPasswordError = if (it != confirmPassword) "Passwords do not match" else null
                     }
                 },
+                label = { Text("Password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
-                singleLine = true
+                singleLine = true,
+                isError = passwordError != null,
+                supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) } }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -120,27 +186,63 @@ fun RegisterScreen(navController: NavController) {
             // Confirm Password Field
             TextField(
                 value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                onValueChange = { 
+                    confirmPassword = it
+                    confirmPasswordError = if (it.isEmpty()) null else if (it != password) "Passwords do not match" else null
+                },
                 label = { Text("Confirm Password") },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(
+                            if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
+                            modifier = Modifier.clickable { confirmPasswordVisible = !confirmPasswordVisible }
+                        )
+                    }
+                },
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
-                singleLine = true
+                singleLine = true,
+                isError = confirmPasswordError != null,
+                supportingText = confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            // Validation requirements text
+            Text(
+                text = "Password must have: 6+ characters, 1 capital letter, 1 special character",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            val isFormValid = username.length >= 3 && 
+                             isValidEmail(email) && 
+                             isValidPassword(password) && 
+                             password == confirmPassword &&
+                             usernameError == null &&
+                             emailError == null &&
+                             passwordError == null &&
+                             confirmPasswordError == null
 
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty() && password == confirmPassword) {
+                    if (isFormValid) {
+                        // Navigate to BioData screen with credentials
+                        navController.currentBackStackEntry?.savedStateHandle?.set("username", username)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("email", email)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("password", password)
                         navController.navigate(Routes.biodata)
                     }
-                }
+                },
+                enabled = isFormValid
             ) {
                 Text(
                     text = "Next",

@@ -1,6 +1,5 @@
 package com.example.smartfit.screens.auth
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,7 +7,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Height
 import androidx.compose.material.icons.filled.MonitorWeight
@@ -31,12 +29,28 @@ fun BioDataScreen(
     navController: NavController,
     userViewModel: UserViewModel
 ) {
+    // Receive credentials from RegisterScreen
+    val username = navController.previousBackStackEntry?.savedStateHandle?.get<String>("username") ?: ""
+    val email = navController.previousBackStackEntry?.savedStateHandle?.get<String>("email") ?: ""
+    val password = navController.previousBackStackEntry?.savedStateHandle?.get<String>("password") ?: ""
+    
     var name by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
 
+    // Observe loading and login states
+    val isAuthenticating by userViewModel.isAuthenticating.collectAsState()
+    val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
+
+    // Navigate to home when logged in
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            navController.navigate(Routes.home) {
+                popUpTo(Routes.splash) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -89,20 +103,7 @@ fun BioDataScreen(
             TextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors,
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextField(
-                value = gender,
-                onValueChange = { gender = it },
-                label = { Text("Gender") },
+                label = { Text("Full Name") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -115,7 +116,7 @@ fun BioDataScreen(
             // Age Field
             TextField(
                 value = age,
-                onValueChange = { if (it.all { char -> char.isDigit() }) age = it },
+                onValueChange = { age = it },
                 label = { Text("Age") },
                 leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -130,7 +131,7 @@ fun BioDataScreen(
             // Height Field
             TextField(
                 value = height,
-                onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) height = it },
+                onValueChange = { height = it },
                 label = { Text("Height (cm)") },
                 leadingIcon = { Icon(Icons.Default.Height, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -145,7 +146,7 @@ fun BioDataScreen(
             // Weight Field
             TextField(
                 value = weight,
-                onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) weight = it },
+                onValueChange = { weight = it },
                 label = { Text("Weight (kg)") },
                 leadingIcon = { Icon(Icons.Default.MonitorWeight, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -155,9 +156,6 @@ fun BioDataScreen(
                 singleLine = true
             )
 
-
-
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // Finish Button
@@ -166,29 +164,36 @@ fun BioDataScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 onClick = {
-                    if (name.isNotEmpty() && age.isNotEmpty()) {
-                        // Save profile and login
-                        userViewModel.saveProfile(
+                    if (name.isNotEmpty() && age.isNotEmpty() && username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                        // Call register with all data
+                        userViewModel.register(
+                            username = username,
+                            email = email,
+                            password = password,
                             name = name,
                             age = age,
-                            weight = weight,
-                            height = height,
+                            weight = weight.ifEmpty { "70" },
+                            height = height.ifEmpty { "170" },
                             gender = "Not specified"
                         )
-                        userViewModel.login()
-
-                        navController.navigate(Routes.home) {
-                            popUpTo(Routes.splash) { inclusive = true }
-                        }
                     }
-                }
+                },
+                enabled = !isAuthenticating && name.isNotEmpty() && age.isNotEmpty()
             ) {
-                Text(
-                    text = "Finish & Sign Up",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                if (isAuthenticating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = "Finish & Sign Up",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     }

@@ -2,7 +2,6 @@ package com.example.smartfit.screens.profile
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,9 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,7 +52,7 @@ fun WeeklyReportScreen(
     
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text("Weekly Report") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -303,7 +299,7 @@ fun SummaryCard(
     color: Color
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.height(90.dp), // Fixed height
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = color.copy(alpha = 0.1f)
@@ -312,15 +308,20 @@ fun SummaryCard(
         Column(
             modifier = Modifier
                 .padding(Spacing.md)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = value,
-                style = AppTypography.typography.titleLarge,
+                style = AppTypography.typography.titleMedium, // Smaller default size
                 fontWeight = FontWeight.Bold,
-                color = color
+                color = color,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
                 style = AppTypography.typography.labelMedium,
@@ -408,13 +409,13 @@ private fun getWeekDates(weekOffset: Int): List<Long> {
     // Get Monday of the week
     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
     val daysFromMonday = when (dayOfWeek) {
-        Calendar.SUNDAY -> 6
         Calendar.MONDAY -> 0
         Calendar.TUESDAY -> 1
         Calendar.WEDNESDAY -> 2
         Calendar.THURSDAY -> 3
         Calendar.FRIDAY -> 4
         Calendar.SATURDAY -> 5
+        Calendar.SUNDAY -> 6
         else -> 0
     }
     
