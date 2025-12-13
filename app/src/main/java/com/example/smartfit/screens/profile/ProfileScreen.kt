@@ -169,7 +169,7 @@ fun ProfileScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    Spacer(modifier = Modifier.height(Spacing.xs))
                 }
             }
 

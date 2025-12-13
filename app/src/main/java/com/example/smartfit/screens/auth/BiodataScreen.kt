@@ -38,6 +38,7 @@ fun BioDataScreen(
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("")}
 
     // Observe loading and login states
     val isAuthenticating by userViewModel.isAuthenticating.collectAsState()
@@ -103,6 +104,20 @@ fun BioDataScreen(
             TextField(
                 value = name,
                 onValueChange = { name = it },
+                label = { Text("Full Name") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors,
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Gender Field
+            TextField(
+                value = gender,
+                onValueChange = { gender = it },
                 label = { Text("Full Name") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 shape = RoundedCornerShape(10.dp),
