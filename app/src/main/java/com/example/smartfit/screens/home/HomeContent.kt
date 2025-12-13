@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Speed
@@ -29,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
@@ -411,7 +416,16 @@ fun RecentActivities(activities: List<ActivityLog>) {
         }
     }
 }
-
+@Composable
+private fun getActivityIcon(activityType: String): ImageVector {
+    return when (activityType.lowercase()) {
+        "running" -> Icons.AutoMirrored.Filled.DirectionsRun
+        "walking" -> Icons.AutoMirrored.Filled.DirectionsWalk
+        "hiking" -> Icons.Default.Hiking
+        "cycling" -> Icons.Default.DirectionsBike
+        else -> Icons.Default.FitnessCenter
+    }
+}
 @Composable
 fun RecentActivityItem(activity: ActivityLog) {
     val timeFormat = SimpleDateFormat("HH:mm a", Locale.getDefault())
@@ -424,7 +438,7 @@ fun RecentActivityItem(activity: ActivityLog) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
+                imageVector = getActivityIcon(activity.activityType),
                 contentDescription = activity.activityType,
                 modifier = Modifier.size(Sizing.iconLarge),
                 tint = MaterialTheme.colorScheme.primary

@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.lottie.compose)
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0-beta01") // Or your current version
 
 //viewmodel dependency
     implementation(libs.androidx.lifecycle.viewmodel.compose)

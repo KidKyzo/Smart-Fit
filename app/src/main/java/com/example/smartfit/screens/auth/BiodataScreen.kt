@@ -11,8 +11,11 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Height
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +43,7 @@ fun BioDataScreen(
     var weight by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("")}
 
+    var isGenderMenuExpanded by remember { mutableStateOf(false) }
     // Observe loading and login states
     val isAuthenticating by userViewModel.isAuthenticating.collectAsState()
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
@@ -115,16 +119,51 @@ fun BioDataScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Gender Field
-            TextField(
-                value = gender,
-                onValueChange = { gender = it },
-                label = { Text("Full Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors,
-                singleLine = true
-            )
+            ExposedDropdownMenuBox(
+                expanded = isGenderMenuExpanded,
+                onExpandedChange = { isGenderMenuExpanded = it },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // This is the TextField that the user sees
+                TextField(
+                    value = gender,
+                    onValueChange = {}, // The value is changed by selecting from the menu
+                    readOnly = true, // Makes the TextField non-editable
+                    label = { Text("Gender") },
+                    leadingIcon = { Icon(Icons.Default.SupervisorAccount, contentDescription = null) },
+                    trailingIcon = {
+                        // This creates the dropdown arrow icon
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGenderMenuExpanded)
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = textFieldColors,
+                    // The .menuAnchor() modifier is crucial for positioning the dropdown
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+
+                // This is the actual dropdown menu with the options
+                ExposedDropdownMenu(
+                    expanded = isGenderMenuExpanded,
+                    onDismissRequest = { isGenderMenuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Male") },
+                        onClick = {
+                            gender = "Male" // Update the state
+                            isGenderMenuExpanded = false // Close the menu
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Female") },
+                        onClick = {
+                            gender = "Female" // Update the state
+                            isGenderMenuExpanded = false // Close the menu
+                        }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

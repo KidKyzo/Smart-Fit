@@ -27,11 +27,15 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -444,6 +448,7 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileDialog(
     currentName: String,
@@ -459,6 +464,7 @@ fun EditProfileDialog(
     var age by remember { mutableStateOf(currentAge) }
     var weight by remember { mutableStateOf(currentWeight) }
     var height by remember { mutableStateOf(currentHeight) }
+    var isGenderMenuExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -484,17 +490,46 @@ fun EditProfileDialog(
                         { Text(nameValidation.errorMessage) }
                     } else null
                 )
-                // Fixed logic for Gender field
-                OutlinedTextField(
-                    value = gender,
-                    onValueChange = { gender = it }, // Corrected assignment
-                    label = { Text("Gender") },
-                    singleLine = true,
-                    isError = !genderValidation.isValid, // Corrected validation check
-                    supportingText = if (!genderValidation.isValid) {
-                        { Text(genderValidation.errorMessage) }
-                    } else null
-                )
+
+                ExposedDropdownMenuBox(
+                    expanded = isGenderMenuExpanded,
+                    onExpandedChange = { isGenderMenuExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = gender,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Gender") },
+                        leadingIcon = { Icon(Icons.Default.SupervisorAccount, contentDescription = null) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGenderMenuExpanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    // This is the actual dropdown menu with the options
+                    ExposedDropdownMenu(
+                        expanded = isGenderMenuExpanded,
+                        onDismissRequest = { isGenderMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Male") },
+                            onClick = {
+                                gender = "Male" // Update the state
+                                isGenderMenuExpanded = false // Close the menu
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Female") },
+                            onClick = {
+                                gender = "Female" // Update the state
+                                isGenderMenuExpanded = false // Close the menu
+                            }
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = age,
                     onValueChange = { age = it },
