@@ -7,16 +7,17 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 /**
- * DAO for user credentials operations
+ * DAO for user credentials operations - Multi-user support
  */
 @Dao
 interface CredentialsDao {
     
     /**
-     * Get stored credentials (single user)
+     * Insert new credentials and return the generated userId
+     * ABORT strategy prevents duplicate usernames/emails
      */
-    @Query("SELECT * FROM user_credentials WHERE id = 1")
-    fun getCredentials(): Flow<UserCredentials?>
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(credentials: UserCredentials): Long
     
     /**
      * Find credentials by username or email
@@ -26,15 +27,20 @@ interface CredentialsDao {
     suspend fun findByUsernameOrEmail(usernameOrEmail: String): UserCredentials?
     
     /**
-     * Save or update credentials
-     * Replaces existing data (no duplication)
+     * Get credentials by ID
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveCredentials(credentials: UserCredentials)
+    @Query("SELECT * FROM user_credentials WHERE id = :userId")
+    suspend fun getCredentialsById(userId: Int): UserCredentials?
     
     /**
-     * Check if credentials exist
+     * Check if any users exist
      */
     @Query("SELECT COUNT(*) FROM user_credentials")
-    suspend fun hasCredentials(): Int
+    suspend fun getUserCount(): Int
+    
+    /**
+     * Get all users (for admin/debugging)
+     */
+    @Query("SELECT * FROM user_credentials ORDER BY createdAt DESC")
+    fun getAllUsers(): Flow<List<UserCredentials>>
 }

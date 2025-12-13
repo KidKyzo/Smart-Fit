@@ -285,6 +285,7 @@ fun AddActivityDialog(
             TextButton(
                 onClick = {
                     val activity = ActivityLog(
+                        userId = 0, // Placeholder - ViewModel will set correct userId
                         activityType = selectedActivityType,
                         duration = duration.toIntOrNull() ?: 0,
                         calories = calories.toIntOrNull() ?: 0,

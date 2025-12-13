@@ -16,18 +16,19 @@ import com.example.smartfit.screens.plan.components.CalorieIntakeSection
 import com.example.smartfit.screens.plan.components.WorkoutSection
 import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.FoodViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanScreen(
     navController: NavController,
-    viewModel: ActivityViewModel
+    viewModel: ActivityViewModel,
+    foodViewModel: FoodViewModel
 ) {
     val activities by viewModel.activities.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     
     val workouts = remember { MockWorkoutData.getWorkouts() }
-    val foods = remember { MockFoodData.getFoods() }
 
     AppScaffold(
         topBar = {
@@ -70,7 +71,7 @@ fun PlanScreen(
             // Calorie Intake Section
             item {
                 CalorieIntakeSection(
-                    foods = foods.take(5),
+                    foodViewModel = foodViewModel,
                     onFoodClick = { food ->
                         navController.navigate("food_detail/${food.id}")
                     },

@@ -22,6 +22,7 @@ class UserPreferences(private val context: Context) {
         val THEME_KEY = booleanPreferencesKey("is_dark_mode")
         val STEP_GOAL_KEY = intPreferencesKey("step_goal")
         val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
+        val CURRENT_USER_ID_KEY = intPreferencesKey("current_user_id") // Multi-user support
 
         val USER_DESCRIPTION_KEY = stringPreferencesKey("user_description")
         
@@ -93,6 +94,35 @@ class UserPreferences(private val context: Context) {
             preferences[LAST_STEP_COUNT_KEY] = lastStepCount
             preferences[SAVED_STEPS_TODAY_KEY] = savedStepsToday
             preferences[LAST_TRACKING_DATE_KEY] = lastTrackingDate
+        }
+    }
+    
+    // Multi-User Support: Current User Tracking
+    
+    /**
+     * Get the currently logged in user's ID
+     * Returns null if no user is logged in
+     */
+    val currentUserIdFlow: Flow<Int?> = context.dataStore.data
+        .map { preferences ->
+            preferences[CURRENT_USER_ID_KEY]
+        }
+    
+    /**
+     * Set the current user ID (called during login/registration)
+     */
+    suspend fun setCurrentUserId(userId: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[CURRENT_USER_ID_KEY] = userId
+        }
+    }
+    
+    /**
+     * Clear the current user ID (called during logout)
+     */
+    suspend fun clearCurrentUserId() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(CURRENT_USER_ID_KEY)
         }
     }
 }

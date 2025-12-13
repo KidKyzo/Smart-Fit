@@ -14,35 +14,45 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.smartfit.data.model.MockFoodData
+import coil.compose.AsyncImage
+import com.example.smartfit.data.model.FoodData
+import com.example.smartfit.screens.plan.components.AddToIntakeDialog
 import com.example.smartfit.ui.designsystem.Alpha
 import com.example.smartfit.ui.designsystem.AppCard
 import com.example.smartfit.ui.designsystem.AppScaffold
 import com.example.smartfit.ui.designsystem.AppTypography
 import com.example.smartfit.ui.designsystem.CompactTopAppBar
 import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.viewmodel.FoodViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodDetailScreen(
     navController: NavController,
-    foodId: Int
+    foodId: Int,
+    foodViewModel: FoodViewModel
 ) {
-    val food = remember { MockFoodData.getFoodById(foodId) }
+    val foods by foodViewModel.searchResults.collectAsState()
+    val food = remember(foods, foodId) {
+        foods.firstOrNull { it.id == foodId }
+    }
+    
+    var showAddDialog by remember { mutableStateOf(false) }
 
     if (food == null) {
         // Handle food not found
@@ -50,10 +60,17 @@ fun FoodDetailScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Food not found")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Food not found")
+                Spacer(modifier = Modifier.height(Spacing.md))
+                Button(onClick = { navController.popBackStack() }) {
+                    Text("Go Back")
+                }
+            }
         }
         return
     }
+    
     AppScaffold(
         topBar = {
             CompactTopAppBar(
@@ -63,6 +80,15 @@ fun FoodDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showAddDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add to intake",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -88,12 +114,20 @@ fun FoodDetailScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Restaurant,
-                            contentDescription = food.title,
-                            modifier = Modifier.size(100.dp),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
+                        if (food.imageUrl.isNotEmpty()) {
+                            AsyncImage(
+                                model = food.imageUrl,
+                                contentDescription = food.title,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Restaurant,
+                                contentDescription = food.title,
+                                modifier = Modifier.size(100.dp),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
                 }
             }
@@ -156,6 +190,18 @@ fun FoodDetailScreen(
                 }
             }
         }
+    }
+    
+    // Add to Intake Dialog
+    if (showAddDialog) {
+        AddToIntakeDialog(
+            food = food,
+            onDismiss = { showAddDialog = false },
+            onConfirm = { servings, mealType ->
+                foodViewModel.logFood(food, servings, mealType)
+                showAddDialog = false
+            }
+        )
     }
 }
 

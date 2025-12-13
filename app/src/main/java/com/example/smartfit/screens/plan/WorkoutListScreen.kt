@@ -28,7 +28,7 @@ fun WorkoutListScreen(
     
     AppScaffold(
         topBar = {
-            TopAppBar(
+            CompactTopAppBar(
                 title = { Text("Workouts") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {

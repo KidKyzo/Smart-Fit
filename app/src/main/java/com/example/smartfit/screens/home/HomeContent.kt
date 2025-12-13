@@ -46,6 +46,7 @@ import com.example.smartfit.ui.designsystem.Spacing
 import com.example.smartfit.ui.designsystem.StatCard
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.UserViewModel
+import com.example.smartfit.viewmodel.FoodViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -72,7 +73,8 @@ fun HomeContent(
     modifier: Modifier = Modifier,
     navController: NavController,
     activityViewModel: ActivityViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    foodViewModel: FoodViewModel
 ) {
     val activities by activityViewModel.activities.collectAsState()
     val steps by activityViewModel.steps.collectAsState()
@@ -85,6 +87,9 @@ fun HomeContent(
 
     // Collect the user's name from the UserViewModel
     val userName by userViewModel.name.collectAsState()
+    
+    // Collect calorie intake from FoodViewModel
+    val calorieIntake by foodViewModel.todayCalorieIntake.collectAsState()
 
     val progress = if (stepGoal > 0) steps.toFloat() / stepGoal.toFloat() else 0f
 
@@ -106,6 +111,7 @@ fun HomeContent(
                 steps = steps,
                 goal = stepGoal,
                 calories = calories,
+                calorieIntake = calorieIntake,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
                 dailyStepsLast7Days = dailyStepsLast7Days
@@ -121,6 +127,7 @@ fun HomeContent(
                 goal = stepGoal,
                 progress = progress,
                 calories = calories,
+                calorieIntake = calorieIntake,
                 distance = distance,
                 activeTime = activeTime,
                 weeklyAvgSteps = weeklyAvgSteps,
@@ -138,6 +145,7 @@ fun PhoneHomeLayout(
     steps: Int,
     goal: Int,
     calories: Int,
+    calorieIntake: Int,
     activeTime: Int,
     weeklyAvgSteps: Int,
     dailyStepsLast7Days: List<Int>
@@ -192,35 +200,13 @@ fun PhoneHomeLayout(
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                        // Placeholder for Calorie Intake
-                        AppCard(
-                            modifier = Modifier.weight(1f),
-                            elevation = 1
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Restaurant,
-                                    contentDescription = "Calorie Intake",
-                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                    modifier = Modifier.size(Sizing.iconLarge)
-                                )
-                                Spacer(modifier = Modifier.height(Spacing.xs))
-                                Text(
-                                    text = "Calorie Intake",
-                                    style = AppTypography.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                                )
-                                Text(
-                                    text = "Coming Soon",
-                                    style = AppTypography.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.low)
-                                )
-                            }
-                        }
+                        StatCard(
+                            title = "Calorie Intake",
+                            value = "$calorieIntake kcal",
+                            icon = Icons.Default.Restaurant,
+                            iconColor = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
@@ -243,6 +229,7 @@ fun TabletHomeLayout(
     goal: Int,
     progress: Float,
     calories: Int,
+    calorieIntake: Int,
     distance: Double,
     activeTime: Int,
     weeklyAvgSteps: Int,
@@ -303,34 +290,13 @@ fun TabletHomeLayout(
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                        AppCard(
-                            modifier = Modifier.weight(1f),
-                            elevation = 1
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Restaurant,
-                                    contentDescription = "Calorie Intake",
-                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                    modifier = Modifier.size(Sizing.iconLarge)
-                                )
-                                Spacer(modifier = Modifier.height(Spacing.xs))
-                                Text(
-                                    text = "Calorie Intake",
-                                    style = AppTypography.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                                )
-                                Text(
-                                    text = "Coming Soon",
-                                    style = AppTypography.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.low)
-                                )
-                            }
-                        }
+                        StatCard(
+                            title = "Calorie Intake",
+                            value = "$calorieIntake kcal",
+                            icon = Icons.Default.Restaurant,
+                            iconColor = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
                 SectionHeader(title = "Recent Activities")

@@ -5,26 +5,39 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.smartfit.data.model.FoodData
 import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.viewmodel.FoodViewModel
 
 @Composable
 fun CalorieIntakeSection(
-    foods: List<FoodData>,
+    foodViewModel: FoodViewModel,
     onFoodClick: (FoodData) -> Unit,
     onViewMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val foods by foodViewModel.searchResults.collectAsState()
+    
+    // Load initial foods if empty
+    LaunchedEffect(Unit) {
+        if (foods.isEmpty()) {
+            foodViewModel.searchFoods("healthy")
+        }
+    }
+    
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -53,14 +66,17 @@ fun CalorieIntakeSection(
         
         Spacer(modifier = Modifier.height(Spacing.md))
         
-        // Horizontal scrolling food cards
+        // Horizontal scrolling food cards (matching WorkoutSection style)
         LazyRow(
             contentPadding = PaddingValues(horizontal = Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            items(foods) { food ->
+            items(foods.take(5)) { food ->
                 FoodCard(
                     food = food,
+                    onAddToIntake = { servings, mealType ->
+                        foodViewModel.logFood(food, servings, mealType)
+                    },
                     onClick = { onFoodClick(food) }
                 )
             }
@@ -71,9 +87,12 @@ fun CalorieIntakeSection(
 @Composable
 private fun FoodCard(
     food: FoodData,
+    onAddToIntake: (servings: Float, mealType: String) -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showAddDialog by remember { mutableStateOf(false) }
+    
     AppCard(
         modifier = modifier
             .width(160.dp)
@@ -86,19 +105,27 @@ private fun FoodCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Placeholder for image
+            // Food Image (matching WorkoutSection layout)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Restaurant,
-                    contentDescription = food.title,
-                    modifier = Modifier.size(Sizing.iconXLarge),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
+                if (food.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = food.imageUrl,
+                        contentDescription = food.title,
+                        modifier = Modifier.size(Sizing.iconXLarge)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Restaurant,
+                        contentDescription = food.title,
+                        modifier = Modifier.size(Sizing.iconXLarge),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
             
             Column(
@@ -114,14 +141,44 @@ private fun FoodCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(Spacing.xs))
-                Text(
-                    text = "${food.calories} kcal",
-                    style = AppTypography.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${food.calories} kcal",
+                        style = AppTypography.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    // Add button
+                    IconButton(
+                        onClick = { showAddDialog = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add to intake",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
             }
         }
+    }
+    
+    // Add to Intake Dialog
+    if (showAddDialog) {
+        AddToIntakeDialog(
+            food = food,
+            onDismiss = { showAddDialog = false },
+            onConfirm = { servings, mealType ->
+                onAddToIntake(servings, mealType)
+                showAddDialog = false
+            }
+        )
     }
 }
