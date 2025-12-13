@@ -8,14 +8,15 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [ActivityLog::class, User::class, UserCredentials::class],
-    version = 4, // Added UserCredentials entity
+    entities = [ActivityLog::class, User::class, UserCredentials::class, FoodIntakeLog::class],
+    version = 6, // Added FoodIntakeLog for calorie intake tracking
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun userDao(): UserDao
     abstract fun credentialsDao(): CredentialsDao
+    abstract fun foodIntakeDao(): FoodIntakeDao
 
     companion object {
         @Volatile

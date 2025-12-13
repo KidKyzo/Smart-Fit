@@ -27,6 +27,7 @@ import com.example.smartfit.screens.profile.ProfileScreen
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
+import com.example.smartfit.viewmodel.FoodViewModel
 
 @Composable
 fun HomeScreen(
@@ -34,7 +35,8 @@ fun HomeScreen(
     navController: NavController,
     activityViewModel: ActivityViewModel,
     themeViewModel: ThemeViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    foodViewModel: FoodViewModel
 ) {
     val navList = listOf(
         NavItem("Plan", Icons.AutoMirrored.Filled.DirectionsWalk),
@@ -76,6 +78,7 @@ fun HomeScreen(
             activityViewModel = activityViewModel,
             themeViewModel = themeViewModel,
             userViewModel = userViewModel,
+            foodViewModel = foodViewModel,
             selectedIndex = selectedIndex,
             onNavigate = { selectedIndex = it }
         )
@@ -89,23 +92,26 @@ fun ScreenContent(
     activityViewModel: ActivityViewModel,
     themeViewModel: ThemeViewModel,
     userViewModel: UserViewModel,
+    foodViewModel: FoodViewModel,
     selectedIndex: Int,
     onNavigate: (Int) -> Unit
 ) {
     when(selectedIndex) {
         0 -> com.example.smartfit.screens.plan.PlanScreen(
             navController = navController,
-            viewModel = activityViewModel
+            viewModel = activityViewModel,
+            foodViewModel = foodViewModel
         )
         1 -> HomeContent(
             modifier = modifier,
             navController = navController,
             activityViewModel = activityViewModel,
-            userViewModel = userViewModel
+            userViewModel = userViewModel,
+            foodViewModel = foodViewModel
         )
         2 -> ProfileScreen(
             navController = navController,
-            themeViewModel = themeViewModel, 
+            themeViewModel = themeViewModel,
             userViewModel = userViewModel,
             activityViewModel = activityViewModel
         )

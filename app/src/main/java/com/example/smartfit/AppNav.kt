@@ -40,6 +40,8 @@ import com.example.smartfit.viewmodel.ActivityViewModelFactory
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import com.example.smartfit.viewmodel.UserViewModelFactory
+import com.example.smartfit.viewmodel.FoodViewModel
+import com.example.smartfit.viewmodel.FoodViewModelFactory
 
 @Composable
 fun AppNav(themeViewModel: ThemeViewModel) {
@@ -58,6 +60,9 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     )
     val userViewModel: UserViewModel = viewModel(
         factory = UserViewModelFactory(userRepository)
+    )
+    val foodViewModel: FoodViewModel = viewModel(
+        factory = FoodViewModelFactory(application)
     )
 
     // Observe the login state from the UserViewModel.
@@ -85,7 +90,24 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (showBottomBar) {
+            // AnimatedVisibility at AppNav level for proper sync
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically(
+                    initialOffsetY = { it }, // Slide from bottom
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it }, // Slide to bottom
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            ) {
                 BottomNavigationBar(
                     navController = navController,
                     currentRoute = currentRoute
@@ -125,13 +147,15 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                     modifier = Modifier,
                     navController = navController,
                     activityViewModel = activityViewModel,
-                    userViewModel = userViewModel
+                    userViewModel = userViewModel,
+                    foodViewModel = foodViewModel
                 )
             }
             composable(Routes.plan) {
                 com.example.smartfit.screens.plan.PlanScreen(
                     navController = navController,
-                    viewModel = activityViewModel
+                    viewModel = activityViewModel,
+                    foodViewModel = foodViewModel
                 )
             }
             composable(Routes.profile) {
@@ -164,7 +188,8 @@ fun AppNav(themeViewModel: ThemeViewModel) {
             }
             composable(Routes.foodList) {
                 com.example.smartfit.screens.plan.FoodListScreen(
-                    navController = navController
+                    navController = navController,
+                    foodViewModel = foodViewModel
                 )
             }
             composable("${Routes.workoutDetail}/{workoutId}") { backStackEntry ->
@@ -178,7 +203,8 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 val foodId = backStackEntry.arguments?.getString("foodId")?.toIntOrNull() ?: 0
                 com.example.smartfit.screens.plan.FoodDetailScreen(
                     navController = navController,
-                    foodId = foodId
+                    foodId = foodId,
+                    foodViewModel = foodViewModel
                 )
             }
             composable("${Routes.weeklyReport}/{weekOffset}") { backStackEntry ->
@@ -204,58 +230,45 @@ fun BottomNavigationBar(
         BottomNavItem("Profile", Routes.profile, Icons.Default.Person)
     )
 
-    // Add slide-in animation to sync with content
-    AnimatedVisibility(
-        visible = true,
-        enter = slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(
-                durationMillis = 300,
-                delayMillis = 300, // Delay to let screen transition finish first
-                easing = FastOutSlowInEasing
-            )
-        )
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 3.dp
     ) {
-        NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            tonalElevation = 3.dp
-        ) {
-            items.forEach { item ->
-                NavigationBarItem(
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        if (currentRoute != item.route) {
-                            navController.navigate(item.route) {
-                                // Pop up to the start destination and save state
-                                popUpTo(Routes.home) {
-                                    saveState = true
-                                }
-                                // Avoid multiple copies of the same destination
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = {
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route) {
+                            // Pop up to the start destination and save state
+                            popUpTo(Routes.home) {
+                                saveState = true
                             }
+                            // Avoid multiple copies of the same destination
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
                         }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = "${item.label} navigation"
-                        )
-                    },
-                    label = {
-                        Text(text = item.label)
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = "${item.label} navigation"
                     )
+                },
+                label = {
+                    Text(text = item.label)
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
+            )
         }
     }
 }

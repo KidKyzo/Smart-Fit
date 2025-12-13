@@ -4,25 +4,52 @@ import com.example.smartfit.data.database.ActivityDao
 import com.example.smartfit.data.database.ActivityLog
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Activity Repository - Multi-user support
+ * All operations require userId for data isolation
+ */
 class ActivityRepository constructor(
     private val activityDao: ActivityDao
 ) {
-    fun getAllActivities(): Flow<List<ActivityLog>> = activityDao.getAllActivities()
+    /**
+     * Get all activities for a specific user
+     */
+    fun getAllActivities(userId: Int): Flow<List<ActivityLog>> = 
+        activityDao.getAllActivities(userId)
     
-    fun getActivitiesByType(type: String): Flow<List<ActivityLog>> = 
-        activityDao.getActivitiesByType(type)
+    /**
+     * Get activities by type for a specific user
+     */
+    fun getActivitiesByType(userId: Int, type: String): Flow<List<ActivityLog>> = 
+        activityDao.getActivitiesByType(userId, type)
     
-    suspend fun getActivityById(id: Long): ActivityLog? = activityDao.getActivityById(id)
+    /**
+     * Get activity by ID for a specific user
+     */
+    suspend fun getActivityById(id: Long, userId: Int): ActivityLog? = 
+        activityDao.getActivityById(id, userId)
     
+    /**
+     * Insert activity (userId must be set in ActivityLog object)
+     */
     suspend fun insertActivity(activity: ActivityLog): Long = 
         activityDao.insertActivity(activity)
     
+    /**
+     * Update activity
+     */
     suspend fun updateActivity(activity: ActivityLog) = 
         activityDao.updateActivity(activity)
     
+    /**
+     * Delete activity
+     */
     suspend fun deleteActivity(activity: ActivityLog) = 
         activityDao.deleteActivity(activity)
     
-    suspend fun deleteActivityById(id: Long) = 
-        activityDao.deleteActivityById(id)
+    /**
+     * Delete activity by ID for a specific user
+     */
+    suspend fun deleteActivityById(id: Long, userId: Int) = 
+        activityDao.deleteActivityById(id, userId)
 }

@@ -6,11 +6,11 @@ import androidx.room.PrimaryKey
 /**
  * User credentials entity for authentication
  * Stores username, email, and password hash
- * Single user app (id always = 1)
+ * Multi-user support: Each user gets a unique auto-generated ID
  */
 @Entity(tableName = "user_credentials")
 data class UserCredentials(
-    @PrimaryKey val id: Int = 1, // Always 1 for single-user app
+    @PrimaryKey(autoGenerate = true) val id: Int = 0, // Auto-increment for multi-user
     val username: String,
     val email: String,
     val passwordHash: String, // SHA-256 hashed password

@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -78,13 +81,17 @@ class ActivityViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             
-            // Combine flows for activities and step goal
+            // Multi-user support: Load activities for current user only
             combine(
-                activityRepository.getAllActivities(),
+                userRepository.currentUserId,
                 userRepository.stepGoal
-            ) { activities, goal ->
-                Pair(activities, goal)
-            }.collect { (activityList, goal) ->
+            ) { userId, goal ->
+                Triple(userId, goal, if (userId != null) activityRepository.getAllActivities(userId) else flowOf(emptyList()))
+            }.flatMapLatest { (userId, goal, activitiesFlow) ->
+                activitiesFlow.map { activities ->
+                    Triple(userId, goal, activities)
+                }
+            }.collect { (userId, goal, activityList) ->
                 _activities.value = activityList
                 _stepGoal.value = goal
                 updateStats(activityList)
@@ -122,7 +129,11 @@ class ActivityViewModel(
                          // Estimate duration based on steps
                          val duration = lastSavedStepsToday / STEPS_PER_MINUTE
                          
+                         // Multi-user: Get current userId
+                         val userId = userRepository.currentUserId.first() ?: return@collect
+                         
                          val yesterdayLog = ActivityLog(
+                             userId = userId, // Set userId for multi-user support
                              activityType = "Walking (Daily)",
                              duration = duration,
                              calories = (lastSavedStepsToday * CALORIES_PER_STEP).toInt(),
@@ -268,8 +279,11 @@ class ActivityViewModel(
 
     fun addActivity(activity: ActivityLog) {
         viewModelScope.launch {
-            activityRepository.insertActivity(activity)
-            _lastAddedActivity.value = activity
+            // Multi-user: Ensure userId is set
+            val userId = userRepository.currentUserId.first() ?: return@launch
+            val activityWithUserId = activity.copy(userId = userId)
+            activityRepository.insertActivity(activityWithUserId)
+            _lastAddedActivity.value = activityWithUserId
         }
     }
 

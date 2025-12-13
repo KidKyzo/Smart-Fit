@@ -121,6 +121,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     
     /**
      * Register new user with credentials and profile
+     * Uses new multi-user repository method
      */
     fun register(
         username: String,
@@ -135,26 +136,22 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         viewModelScope.launch {
             _isAuthenticating.value = true
             try {
-                // Save credentials
-                userRepository.saveCredentials(username, email, password)
-                
-                // Save profile
-                val ageInt = age.toIntOrNull() ?: 25
-                val weightFloat = weight.toFloatOrNull() ?: 70f
-                val heightFloat = height.toFloatOrNull() ?: 170f
-                
-                userRepository.saveUserProfile(
+                val userId = userRepository.register(
+                    username = username,
+                    email = email,
+                    password = password,
                     name = name,
-                    age = ageInt,
-                    weight = weightFloat,
-                    height = heightFloat,
+                    age = age,
+                    weight = weight,
+                    height = height,
                     gender = gender
                 )
                 
-                // Auto-login after registration
-                userRepository.login()
-                
-                _loginError.value = null
+                if (userId != null) {
+                    _loginError.value = null
+                } else {
+                    _loginError.value = "Registration failed: Username or email already exists"
+                }
             } catch (e: Exception) {
                 _loginError.value = "Registration failed: ${e.message}"
             } finally {
@@ -165,15 +162,14 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     
     /**
      * Validate credentials and login
-     * Returns error message if validation fails
+     * Uses new multi-user repository method
      */
     fun validateAndLogin(usernameOrEmail: String, password: String) {
         viewModelScope.launch {
             _isAuthenticating.value = true
             try {
-                val isValid = userRepository.validateCredentials(usernameOrEmail, password)
-                if (isValid) {
-                    userRepository.login()
+                val success = userRepository.validateAndLogin(usernameOrEmail, password)
+                if (success) {
                     _loginError.value = null
                 } else {
                     _loginError.value = "Invalid username/email or password"
