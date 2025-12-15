@@ -78,6 +78,7 @@ dependencies {
 
     //image loading (Coil)
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")
 
     //test & debug
     testImplementation(libs.junit)

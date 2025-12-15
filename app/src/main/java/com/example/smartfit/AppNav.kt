@@ -23,25 +23,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.smartfit.data.database.AppDatabase
+import com.example.smartfit.data.network.NetworkModule
 import com.example.smartfit.data.repository.ActivityRepository
 import com.example.smartfit.data.repository.UserRepository
+import com.example.smartfit.data.repository.ExerciseRepository
 import com.example.smartfit.screens.SplashScreen
 import com.example.smartfit.screens.activity.LogActivity
 import com.example.smartfit.screens.auth.BioDataScreen
 import com.example.smartfit.screens.auth.LoginScreen
 import com.example.smartfit.screens.auth.RegisterScreen
-import com.example.smartfit.screens.auth.RegisterScreen
-import com.example.smartfit.screens.auth.BioDataScreen
 import com.example.smartfit.screens.home.HomeContent
 import com.example.smartfit.screens.profile.ProfileScreen
 import com.example.smartfit.screens.profile.SettingScreen
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ActivityViewModelFactory
+import com.example.smartfit.viewmodel.ExerciseViewModel
+import com.example.smartfit.viewmodel.ExerciseViewModelFactory
+import com.example.smartfit.viewmodel.FoodViewModel
+import com.example.smartfit.viewmodel.FoodViewModelFactory
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import com.example.smartfit.viewmodel.UserViewModelFactory
-import com.example.smartfit.viewmodel.FoodViewModel
-import com.example.smartfit.viewmodel.FoodViewModelFactory
+
 
 @Composable
 fun AppNav(themeViewModel: ThemeViewModel) {
@@ -49,12 +52,14 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     val context = navController.context
     val application = context.applicationContext as Application
 
-    // Initialize database and repositories. These are scoped to the AppNav lifecycle.
+    // 1. Initialize Database & Repositories
     val database = AppDatabase.getDatabase(context)
     val activityRepository = ActivityRepository(database.activityDao())
     val userRepository = UserRepository(context)
 
-    // Initialize ViewModels using their respective factories for dependency injection.
+    // --------------------------------------------
+
+    // 2. Initialize ViewModels
     val activityViewModel: ActivityViewModel = viewModel(
         factory = ActivityViewModelFactory(application, activityRepository, userRepository)
     )
@@ -65,24 +70,29 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         factory = FoodViewModelFactory(application)
     )
 
-    // Observe the login state from the UserViewModel.
+    // --- NEW: Initialize Workout ViewModel ---
+    val exerciseApi = NetworkModule.provideExerciseDbApi()
+    val exerciseRepository = ExerciseRepository(exerciseApi)
+    val exerciseViewModel: ExerciseViewModel = viewModel(
+        factory = ExerciseViewModelFactory(exerciseRepository)
+    )
+
+    // -----------------------------------------
+
+    // Observe login state
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
 
-    // This effect handles automatic navigation based on the user's login status.
+    // Automatic Navigation Logic (Auth Guard)
     LaunchedEffect(isLoggedIn, navController) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
-
-        // This effect should ONLY handle forcing a user to the login screen if they are not authorized.
         if (!isLoggedIn && currentRoute != Routes.login && currentRoute != Routes.splash) {
-            // If the user is not logged in and not on login/splash, redirect to login.
             navController.navigate(Routes.login) {
-                // Clear the entire back stack to prevent going back to a protected screen.
                 popUpTo(0) { inclusive = true }
             }
         }
     }
 
-    // Check if we should show bottom navigation
+    // Bottom Bar Logic
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in listOf(Routes.home, Routes.plan, Routes.profile)
@@ -90,141 +100,98 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            // AnimatedVisibility at AppNav level for proper sync
             AnimatedVisibility(
                 visible = showBottomBar,
-                enter = slideInVertically(
-                    initialOffsetY = { it }, // Slide from bottom
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                ),
-                exit = slideOutVertically(
-                    targetOffsetY = { it }, // Slide to bottom
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                )
+                enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(300, easing = FastOutSlowInEasing)),
+                exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(300, easing = FastOutSlowInEasing))
             ) {
-                BottomNavigationBar(
-                    navController = navController,
-                    currentRoute = currentRoute
-                )
+                BottomNavigationBar(navController = navController, currentRoute = currentRoute)
             }
         }
     ) { innerPadding ->
-        // NavHost is the container for all navigation destinations.
         NavHost(
             navController = navController,
             startDestination = Routes.splash,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Routes.splash) {
-                SplashScreen(navController, userViewModel)
-            }
-            composable(Routes.login) {
-                LoginScreen(
-                    modifier = Modifier,
-                    navController = navController,
-                    userViewModel = userViewModel
-                )
-            }
-            composable(Routes.register) {
-                RegisterScreen(navController = navController)
-            }
-            composable(Routes.biodata) {
-                BioDataScreen(
-                    navController = navController,
-                    userViewModel = userViewModel
-                )
-            }
-            
-            // Main bottom navigation screens (top-level routes)
+            // ... (Other Auth/Home Routes remain the same) ...
+
+            composable(Routes.splash) { SplashScreen(navController, userViewModel) }
+            composable(Routes.login) { LoginScreen(Modifier, navController, userViewModel) }
+            composable(Routes.register) { RegisterScreen(navController) }
+            composable(Routes.biodata) { BioDataScreen(navController, userViewModel) }
+
             composable(Routes.home) {
-                HomeContent(
-                    modifier = Modifier,
-                    navController = navController,
-                    activityViewModel = activityViewModel,
-                    userViewModel = userViewModel,
-                    foodViewModel = foodViewModel
-                )
+                HomeContent(Modifier, navController, activityViewModel, userViewModel, foodViewModel)
             }
+
             composable(Routes.plan) {
                 com.example.smartfit.screens.plan.PlanScreen(
                     navController = navController,
-                    viewModel = activityViewModel,
-                    foodViewModel = foodViewModel
+                    activityViewModel = activityViewModel,
+                    foodViewModel = foodViewModel,
+                    exerciseViewModel = exerciseViewModel
                 )
             }
+
             composable(Routes.profile) {
-                ProfileScreen(
-                    navController = navController,
-                    themeViewModel = themeViewModel,
-                    userViewModel = userViewModel,
-                    activityViewModel = activityViewModel
-                )
+                ProfileScreen(navController, themeViewModel, userViewModel, activityViewModel)
             }
-            
-            // Other screens
+
+            // ... (Log, Setting Routes remain the same) ...
+
             composable(Routes.log) {
-                LogActivity(
-                    viewModel = activityViewModel,
-                    onBack = { navController.popBackStack() }
-                )
+                LogActivity(viewModel = activityViewModel, onBack = { navController.popBackStack() })
             }
             composable(Routes.setting) {
-                SettingScreen(
-                    modifier = Modifier,
-                    navController = navController,
-                    themeViewModel = themeViewModel
-                )
+                SettingScreen(Modifier, navController, themeViewModel)
             }
+
+            // --- UPDATED: WORKOUT LIST ROUTE ---
             composable(Routes.workoutList) {
                 com.example.smartfit.screens.plan.WorkoutListScreen(
-                    navController = navController
-                )
-            }
-            composable(Routes.foodList) {
-                com.example.smartfit.screens.plan.FoodListScreen(
                     navController = navController,
-                    foodViewModel = foodViewModel
+                    viewModel = exerciseViewModel
                 )
             }
-            composable("${Routes.workoutDetail}/{workoutId}") { backStackEntry ->
-                val workoutId = backStackEntry.arguments?.getString("workoutId")?.toIntOrNull() ?: 0
+            // -----------------------------------
+
+            composable(Routes.foodList) {
+                com.example.smartfit.screens.plan.FoodListScreen(navController, foodViewModel)
+            }
+
+            // Note: Since this API doesn't have a "Detail" endpoint returning ID,
+            // you might need to pass the whole object or just use the title if you want details.
+            // For now, keeping your existing structure:
+            composable(Routes.workoutList) {
+                com.example.smartfit.screens.plan.WorkoutListScreen(
+                    navController = navController,
+                    viewModel = exerciseViewModel // Pass the INSTANCE
+                )
+            }
+
+            composable(Routes.workoutDetail) {
+                // Do NOT try to get arguments here. Just render the screen.
                 com.example.smartfit.screens.plan.WorkoutDetailScreen(
                     navController = navController,
-                    workoutId = workoutId
+                    viewModel = exerciseViewModel // Pass the SAME INSTANCE
                 )
             }
+
             composable("${Routes.foodDetail}/{foodId}") { backStackEntry ->
                 val foodId = backStackEntry.arguments?.getString("foodId")?.toIntOrNull() ?: 0
-                com.example.smartfit.screens.plan.FoodDetailScreen(
-                    navController = navController,
-                    foodId = foodId,
-                    foodViewModel = foodViewModel
-                )
+                com.example.smartfit.screens.plan.FoodDetailScreen(navController, foodId, foodViewModel)
             }
-            composable("calorie_intake_history") {
-                com.example.smartfit.screens.plan.CalorieIntakeHistoryScreen(
-                    navController = navController,
-                    foodViewModel = foodViewModel
-                )
-            }
+
             composable("${Routes.weeklyReport}/{weekOffset}") { backStackEntry ->
                 val weekOffset = backStackEntry.arguments?.getString("weekOffset")?.toIntOrNull() ?: 0
-                com.example.smartfit.screens.profile.WeeklyReportScreen(
-                    navController = navController,
-                    viewModel = activityViewModel,
-                    weekOffset = weekOffset
-                )
+                com.example.smartfit.screens.profile.WeeklyReportScreen(navController, activityViewModel, weekOffset)
             }
         }
     }
 }
 
+// ... BottomNavigationBar remains the same ...
 @Composable
 fun BottomNavigationBar(
     navController: NavController,
@@ -247,26 +214,14 @@ fun BottomNavigationBar(
                 onClick = {
                     if (currentRoute != item.route) {
                         navController.navigate(item.route) {
-                            // Pop up to the start destination and save state
-                            popUpTo(Routes.home) {
-                                saveState = true
-                            }
-                            // Avoid multiple copies of the same destination
+                            popUpTo(Routes.home) { saveState = true }
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
                     }
                 },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = "${item.label} navigation"
-                    )
-                },
-                label = {
-                    Text(text = item.label)
-                },
+                icon = { Icon(item.icon, contentDescription = "${item.label} navigation") },
+                label = { Text(item.label) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onSurface,

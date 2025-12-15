@@ -170,7 +170,7 @@ fun ProfileScreen(
                     Text(
                         text = userName,
                         style = AppTypography.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.xs))
