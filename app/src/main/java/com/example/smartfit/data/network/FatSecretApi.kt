@@ -22,7 +22,8 @@ interface FatSecretApi {
         @Field("method") method: String = "foods.search",
         @Field("search_expression") query: String,
         @Field("format") format: String = "json",
-        @Field("max_results") maxResults: Int = 20
+        @Field("max_results") maxResults: Int = 50,
+        @Field("page_number") pageNumber: Int = 0
     ): FoodSearchResponse
     
     /**

@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.example.smartfit.data.model.MockFoodData
 import com.example.smartfit.data.model.MockWorkoutData
 import com.example.smartfit.screens.activity.ActivityCard
 import com.example.smartfit.screens.activity.AddActivityDialog

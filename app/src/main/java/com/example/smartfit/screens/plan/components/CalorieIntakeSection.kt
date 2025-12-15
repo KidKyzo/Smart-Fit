@@ -31,10 +31,10 @@ fun CalorieIntakeSection(
 ) {
     val foods by foodViewModel.searchResults.collectAsState()
     
-    // Load initial foods if empty
+    // Load initial Indonesian/Malaysian foods if empty
     LaunchedEffect(Unit) {
         if (foods.isEmpty()) {
-            foodViewModel.searchFoods("healthy")
+            foodViewModel.searchFoods("nasi goreng")
         }
     }
     

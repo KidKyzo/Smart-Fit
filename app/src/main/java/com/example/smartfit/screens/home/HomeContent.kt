@@ -113,6 +113,7 @@ fun HomeContent(
                 activities = activities,
                 currentDate = currentDate,
                 userName = userName,
+                navController = navController,
                 steps = steps,
                 goal = stepGoal,
                 calories = calories,
@@ -147,6 +148,7 @@ fun PhoneHomeLayout(
     activities: List<ActivityLog>,
     currentDate: String,
     userName: String,
+    navController: NavController,
     steps: Int,
     goal: Int,
     calories: Int,
@@ -210,7 +212,8 @@ fun PhoneHomeLayout(
                             value = "$calorieIntake kcal",
                             icon = Icons.Default.Restaurant,
                             iconColor = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navController.navigate("calorie_intake_history") }
                         )
                     }
                 }

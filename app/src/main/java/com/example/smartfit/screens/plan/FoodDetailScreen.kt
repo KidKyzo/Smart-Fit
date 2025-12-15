@@ -1,28 +1,12 @@
 package com.example.smartfit.screens.plan
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,13 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.smartfit.data.model.FoodData
+import com.example.smartfit.data.model.calculateNutrition
 import com.example.smartfit.screens.plan.components.AddToIntakeDialog
-import com.example.smartfit.ui.designsystem.Alpha
-import com.example.smartfit.ui.designsystem.AppCard
-import com.example.smartfit.ui.designsystem.AppScaffold
-import com.example.smartfit.ui.designsystem.AppTypography
-import com.example.smartfit.ui.designsystem.CompactTopAppBar
-import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.FoodViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +33,8 @@ fun FoodDetailScreen(
     }
     
     var showAddDialog by remember { mutableStateOf(false) }
+    var selectedServingIndex by remember { mutableStateOf(0) }
+    var servingExpanded by remember { mutableStateOf(false) }
 
     if (food == null) {
         // Handle food not found
@@ -70,6 +52,10 @@ fun FoodDetailScreen(
         }
         return
     }
+    
+    val servingOptions = food.servingOptions
+    val selectedServing = servingOptions[selectedServingIndex]
+    val nutrition = food.calculateNutrition(selectedServing.grams)
     
     AppScaffold(
         topBar = {
@@ -99,93 +85,116 @@ fun FoodDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(Spacing.md),
+            contentPadding = PaddingValues(Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Image section
+            // Food Image
             item {
-                AppCard(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
-                    elevation = 2
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    if (food.imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = food.imageUrl,
+                            contentDescription = food.title,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Restaurant,
+                            contentDescription = food.title,
+                            modifier = Modifier.size(Sizing.iconXXLarge),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+            
+            // Food Name
+            item {
+                Text(
+                    text = food.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            // Serving Size Selector
+            item {
+                AppCard {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.md)
                     ) {
-                        if (food.imageUrl.isNotEmpty()) {
-                            AsyncImage(
-                                model = food.imageUrl,
-                                contentDescription = food.title,
-                                modifier = Modifier.fillMaxSize()
+                        Text(
+                            text = "Serving Size",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(modifier = Modifier.height(Spacing.sm))
+                        
+                        ExposedDropdownMenuBox(
+                            expanded = servingExpanded,
+                            onExpandedChange = { servingExpanded = !servingExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedServing.label,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = servingExpanded)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                             )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Restaurant,
-                                contentDescription = food.title,
-                                modifier = Modifier.size(100.dp),
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
+                            
+                            ExposedDropdownMenu(
+                                expanded = servingExpanded,
+                                onDismissRequest = { servingExpanded = false }
+                            ) {
+                                servingOptions.forEachIndexed { index, serving ->
+                                    DropdownMenuItem(
+                                        text = { Text(serving.label) },
+                                        onClick = {
+                                            selectedServingIndex = index
+                                            servingExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-
-            // Food name and serving size
+            
+            // Nutritional Information
             item {
-                Column {
-                    Text(
-                        text = food.title,
-                        style = AppTypography.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-                    Text(
-                        text = "Serving Size: ${food.servingSize}",
-                        style = AppTypography.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                    )
-                }
-            }
-
-            // Nutritional information
-            item {
-                AppCard(elevation = 1) {
-                    Column {
+                AppCard {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.md),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
                         Text(
                             text = "Nutritional Information",
-                            style = AppTypography.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.height(Spacing.md))
-
-                        NutritionRow("Calories", "${food.calories} kcal")
-                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
-                        NutritionRow("Protein", food.protein)
-                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
-                        NutritionRow("Carbohydrates", food.carbs)
-                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
-                        NutritionRow("Fats", food.fats)
-                    }
-                }
-            }
-
-            // Description
-            item {
-                AppCard(elevation = 1) {
-                    Column {
-                        Text(
-                            text = "Description",
-                            style = AppTypography.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(Spacing.sm))
-                        Text(
-                            text = food.description,
-                            style = AppTypography.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.high)
-                        )
+                        
+                        Divider(modifier = Modifier.padding(vertical = Spacing.xs))
+                        
+                        NutritionRow("Calories", "${nutrition.calories} kcal")
+                        NutritionRow("Protein", "${String.format("%.1f", nutrition.protein)}g")
+                        NutritionRow("Carbohydrates", "${String.format("%.1f", nutrition.carbs)}g")
+                        NutritionRow("Fats", "${String.format("%.1f", nutrition.fats)}g")
                     }
                 }
             }
@@ -206,25 +215,20 @@ fun FoodDetailScreen(
 }
 
 @Composable
-private fun NutritionRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
+private fun NutritionRow(label: String, value: String) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = label,
-            style = AppTypography.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+            style = MaterialTheme.typography.bodyLarge
         )
         Text(
             text = value,
-            style = AppTypography.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
