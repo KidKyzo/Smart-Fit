@@ -8,27 +8,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.example.smartfit.data.model.MockFoodData
-import com.example.smartfit.data.model.MockWorkoutData
+import com.example.smartfit.Routes
 import com.example.smartfit.screens.activity.ActivityCard
 import com.example.smartfit.screens.activity.AddActivityDialog
 import com.example.smartfit.screens.plan.components.CalorieIntakeSection
-import com.example.smartfit.screens.plan.components.WorkoutSection
+import com.example.smartfit.screens.plan.components.ExerciseSection // Import the new section
 import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.ExerciseViewModel
 import com.example.smartfit.viewmodel.FoodViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanScreen(
     navController: NavController,
-    viewModel: ActivityViewModel,
-    foodViewModel: FoodViewModel
+    activityViewModel: ActivityViewModel,
+    foodViewModel: FoodViewModel,
+    exerciseViewModel: ExerciseViewModel
 ) {
-    val activities by viewModel.activities.collectAsState()
+    val activities by activityViewModel.activities.collectAsState()
+    val exercises by exerciseViewModel.exercises.collectAsState()
+    val isLoading by exerciseViewModel.isLoading.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
-    
-    val workouts = remember { MockWorkoutData.getWorkouts() }
 
     AppScaffold(
         topBar = {
@@ -55,20 +57,22 @@ fun PlanScreen(
             contentPadding = PaddingValues(vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Workout Suggestions Section
+            // 1. Exercise API Section (Now using the component)
             item {
-                WorkoutSection(
-                    workouts = workouts.take(5),
-                    onWorkoutClick = { workout ->
-                        navController.navigate("workout_detail/${workout.id}")
+                ExerciseSection(
+                    exercises = exercises,
+                    isLoading = isLoading,
+                    onExerciseClick = { exercise ->
+                        exerciseViewModel.selectExercise(exercise)
+                        navController.navigate(Routes.workoutDetail)
                     },
                     onViewMoreClick = {
-                        navController.navigate("workout_list")
+                        navController.navigate(Routes.workoutList)
                     }
                 )
             }
-            
-            // Calorie Intake Section
+
+            // 2. Calorie Intake Section
             item {
                 CalorieIntakeSection(
                     foodViewModel = foodViewModel,
@@ -80,8 +84,8 @@ fun PlanScreen(
                     }
                 )
             }
-            
-            // Recent Activities Section
+
+            // 3. Recent Activities Section
             item {
                 Column(
                     modifier = Modifier
@@ -94,7 +98,7 @@ fun PlanScreen(
                         onActionClick = { navController.navigate("log_activity") }
                     )
                     Spacer(modifier = Modifier.height(Spacing.md))
-                    
+
                     if (activities.isEmpty()) {
                         EmptyState(
                             title = "No activities logged yet",
@@ -107,7 +111,7 @@ fun PlanScreen(
                         activities.take(3).forEach { activity ->
                             ActivityCard(
                                 activity = activity,
-                                onDelete = { viewModel.deleteActivity(activity) }
+                                onDelete = { activityViewModel.deleteActivity(activity) }
                             )
                             Spacer(modifier = Modifier.height(Spacing.md))
                         }
@@ -116,12 +120,12 @@ fun PlanScreen(
             }
         }
     }
-    
+
     if (showAddDialog) {
         AddActivityDialog(
             onDismiss = { showAddDialog = false },
             onAdd = { activity ->
-                viewModel.addActivity(activity)
+                activityViewModel.addActivity(activity)
                 showAddDialog = false
             }
         )

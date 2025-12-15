@@ -25,6 +25,7 @@ import com.example.smartfit.NavItem
 import com.example.smartfit.screens.activity.LogActivity
 import com.example.smartfit.screens.profile.ProfileScreen
 import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.ExerciseViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import com.example.smartfit.viewmodel.FoodViewModel
@@ -36,7 +37,8 @@ fun HomeScreen(
     activityViewModel: ActivityViewModel,
     themeViewModel: ThemeViewModel,
     userViewModel: UserViewModel,
-    foodViewModel: FoodViewModel
+    foodViewModel: FoodViewModel,
+    exerciseViewModel: ExerciseViewModel
 ) {
     val navList = listOf(
         NavItem("Plan", Icons.AutoMirrored.Filled.DirectionsWalk),
@@ -79,6 +81,7 @@ fun HomeScreen(
             themeViewModel = themeViewModel,
             userViewModel = userViewModel,
             foodViewModel = foodViewModel,
+            exerciseViewModel = exerciseViewModel,
             selectedIndex = selectedIndex,
             onNavigate = { selectedIndex = it }
         )
@@ -93,14 +96,16 @@ fun ScreenContent(
     themeViewModel: ThemeViewModel,
     userViewModel: UserViewModel,
     foodViewModel: FoodViewModel,
+    exerciseViewModel: ExerciseViewModel,
     selectedIndex: Int,
     onNavigate: (Int) -> Unit
 ) {
     when(selectedIndex) {
         0 -> com.example.smartfit.screens.plan.PlanScreen(
             navController = navController,
-            viewModel = activityViewModel,
-            foodViewModel = foodViewModel
+            activityViewModel = activityViewModel,
+            foodViewModel = foodViewModel,
+            exerciseViewModel = exerciseViewModel
         )
         1 -> HomeContent(
             modifier = modifier,

@@ -2,36 +2,36 @@ package com.example.smartfit.screens.plan
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.smartfit.data.model.MockWorkoutData
 import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.viewmodel.ExerciseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDetailScreen(
     navController: NavController,
-    workoutId: Int
+    viewModel: ExerciseViewModel
 ) {
-    val workout = remember { MockWorkoutData.getWorkoutById(workoutId) }
-    
-    if (workout == null) {
-        // Handle workout not found
+    val exercise by viewModel.selectedExercise.collectAsState()
+
+    if (exercise == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Workout not found")
+            Text("Exercise not selected")
         }
         return
     }
@@ -39,7 +39,13 @@ fun WorkoutDetailScreen(
     AppScaffold(
         topBar = {
             CompactTopAppBar(
-                title = { Text(workout.title) },
+                title = {
+                    Text(
+                        exercise!!.name.replaceFirstChar { it.uppercase() },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -58,7 +64,7 @@ fun WorkoutDetailScreen(
             contentPadding = PaddingValues(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Image/GIF section
+            // 1. Image/Icon Card (Matching FoodDetailScreen design)
             item {
                 AppCard(
                     modifier = Modifier
@@ -72,7 +78,7 @@ fun WorkoutDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.FitnessCenter,
-                            contentDescription = workout.title,
+                            contentDescription = exercise!!.name,
                             modifier = Modifier.size(100.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -80,110 +86,85 @@ fun WorkoutDetailScreen(
                 }
             }
 
-            // Workout info
+            // 2. Title Section
             item {
                 Column {
                     Text(
-                        text = workout.title,
+                        text = exercise!!.name.replaceFirstChar { it.uppercase() },
                         style = AppTypography.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(Spacing.sm))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                    ) {
-                        AppCard(elevation = 1) {
-                            Text(
-                                text = workout.duration,
-                                style = AppTypography.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        AppCard(elevation = 1) {
-                            Text(
-                                text = workout.difficulty,
-                                style = AppTypography.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Text(
+                        text = "Target Muscle: ${exercise!!.muscle?.replaceFirstChar { it.uppercase() } ?: "General"}",
+                        style = AppTypography.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+                    )
                 }
             }
 
-            // Description
+            // 3. Info Card (Matching Nutritional Information design)
             item {
                 AppCard(elevation = 1) {
                     Column {
                         Text(
-                            text = "Description",
+                            text = "Exercise Details",
+                            style = AppTypography.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(Spacing.md))
+
+                        DetailsRow("Type", exercise!!.type ?: "Strength")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
+                        DetailsRow("Difficulty", exercise!!.difficulty ?: "Beginner")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
+                        DetailsRow("Equipment", exercise!!.equipment ?: "None")
+                    }
+                }
+            }
+
+            // 4. Instructions/Description Card
+            item {
+                AppCard(elevation = 1) {
+                    Column {
+                        Text(
+                            text = "Instructions",
                             style = AppTypography.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(Spacing.sm))
                         Text(
-                            text = workout.description,
+                            text = exercise!!.instructions ?: "No instructions available.",
                             style = AppTypography.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.high)
                         )
                     }
                 }
             }
-
-            // Step-by-step instructions
-            item {
-                AppCard(elevation = 1) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.md) // Add padding to the whole card
-                    ) {
-                        // Instruction Header
-                        Text(
-                            text = "Instructions",
-                            style = AppTypography.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(Spacing.md))
-
-                        // A Column to list out each step
-                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                            workout.steps.forEachIndexed { index, step ->
-                                // Each step is a Row
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                                    verticalAlignment = Alignment.Top // Aligns number and text to the top
-                                ) {
-                                    // Step number circle
-                                    Surface(
-                                        shape = Shapes.circle,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Text(
-                                                text = "${index + 1}",
-                                                style = AppTypography.typography.labelMedium,
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                    }
-
-                                    // Step description text
-                                    Text(
-                                        text = step,
-                                        style = AppTypography.typography.bodyMedium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
+    }
+}
+
+@Composable
+private fun DetailsRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = AppTypography.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+        )
+        Text(
+            text = value.replaceFirstChar { it.uppercase() },
+            style = AppTypography.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
