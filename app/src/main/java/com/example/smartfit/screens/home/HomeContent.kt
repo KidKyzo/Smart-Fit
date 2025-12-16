@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.DirectionsBike
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -221,7 +222,7 @@ fun PhoneHomeLayout(
             item {
                 // Recent Activities Section
                 SectionHeader(title = "Recent Activities")
-                RecentActivities(activities = activities.take(3))
+                RecentActivities(activities = activities.take(2))
             }
         }
     }
@@ -309,7 +310,7 @@ fun TabletHomeLayout(
                 }
                 SectionHeader(title = "Recent Activities")
                 Spacer(modifier = Modifier.height(Spacing.sm))
-                RecentActivities(activities = activities.take(5))
+                RecentActivities(activities = activities.take(2))
             }
         }
     }
@@ -389,6 +390,7 @@ fun RecentActivities(activities: List<ActivityLog>) {
 private fun getActivityIcon(activityType: String): ImageVector {
     return when (activityType.lowercase()) {
         "running" -> Icons.AutoMirrored.Filled.DirectionsRun
+        "jogging" -> Icons.AutoMirrored.Filled.DirectionsRun
         "walking" -> Icons.AutoMirrored.Filled.DirectionsWalk
         "hiking" -> Icons.Default.Hiking
         "cycling" -> Icons.Default.DirectionsBike

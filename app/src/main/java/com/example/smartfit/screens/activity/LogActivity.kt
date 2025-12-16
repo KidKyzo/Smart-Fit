@@ -1,15 +1,19 @@
 package com.example.smartfit.screens.activity
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +34,10 @@ fun LogActivity(
     val lastAddedActivity by viewModel.lastAddedActivity.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
 
+    // State for undo functionality
+    val snackbarHostState = remember { SnackbarHostState() }
+    var deletedItem by remember { mutableStateOf<ActivityLog?>(null) }
+
     // Show the summary dialog when a new activity is logged
     lastAddedActivity?.let { activity ->
         FinishTrackingScreen(
@@ -40,6 +48,35 @@ fun LogActivity(
                 viewModel.clearLastAddedActivity()
             }
         )
+    }
+
+    // Handle Undo Snackbar logic
+    LaunchedEffect(deletedItem) {
+        deletedItem?.let { item ->
+            val result = snackbarHostState.showSnackbar(
+                message = "${item.activityType} removed",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Short
+            )
+
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.addActivity(item) // Re-add the item
+            }
+            deletedItem = null
+        }
+    }
+
+    // Group activities by day
+    val groupedActivities = remember(activities) {
+        activities.sortedByDescending { it.date }.groupBy { log ->
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = log.date
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            calendar.timeInMillis
+        }
     }
 
     AppScaffold(
@@ -87,18 +124,46 @@ fun LogActivity(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(Spacing.lg),
+                        contentPadding = PaddingValues(bottom = 80.dp),
                         verticalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
-                        items(activities) { activity ->
-                            ActivityCard(
-                                activity = activity,
-                                onDelete = { viewModel.deleteActivity(activity) }
-                            )
+                        groupedActivities.forEach { (dayTimestamp, activitiesForDay) ->
+                            // Day Header
+                            item {
+                                ActivityDateHeader(
+                                    dayTimestamp = dayTimestamp,
+                                    totalCalories = activitiesForDay.sumOf { it.calories },
+                                    totalDuration = activitiesForDay.sumOf { it.duration }
+                                )
+                            }
+
+                            // Swipe to Delete Items
+                            items(
+                                items = activitiesForDay,
+                                key = { it.id }
+                            ) { activity ->
+                                SwipeToDeleteActivityItem(
+                                    activity = activity,
+                                    onDelete = {
+                                        deletedItem = activity
+                                        viewModel.deleteActivity(activity)
+                                    }
+                                )
+                            }
+
+                            item {
+                                Spacer(modifier = Modifier.height(Spacing.xs))
+                            }
                         }
                     }
                 }
             }
+
+            // SnackbarHost placed explicitly at the bottom of the content Box
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 
@@ -114,11 +179,129 @@ fun LogActivity(
 }
 
 @Composable
-fun ActivityCard(
+fun ActivityDateHeader(
+    dayTimestamp: Long,
+    totalCalories: Int,
+    totalDuration: Int
+) {
+    val dateFormat = SimpleDateFormat("EEEE, MMM dd, yyyy", Locale.getDefault())
+    val dateString = dateFormat.format(Date(dayTimestamp))
+
+    val today = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val displayDate = when (dayTimestamp) {
+        today -> "Today"
+        today - 86400000 -> "Yesterday"
+        else -> dateString
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.lg, vertical = Spacing.sm)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = displayDate,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Timer,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "${totalDuration}m",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(Spacing.sm))
+                Icon(
+                    Icons.Default.LocalFireDepartment,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "$totalCalories",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        HorizontalDivider(modifier = Modifier.padding(top = Spacing.xs))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToDeleteActivityItem(
     activity: ActivityLog,
     onDelete: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        },
+        positionalThreshold = { distance -> distance * 0.5f }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        modifier = Modifier.padding(horizontal = Spacing.lg),
+        backgroundContent = {
+            val progress = dismissState.progress
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = progress * 0.3f)),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onError.copy(alpha = progress),
+                    modifier = Modifier
+                        .padding(horizontal = Spacing.lg)
+                        .size(Sizing.iconLarge)
+                )
+            }
+        },
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true
+    ) {
+        ActivityCard(activity = activity)
+    }
+}
+
+@Composable
+fun ActivityCard(
+    activity: ActivityLog
+) {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     AppCard(
@@ -130,18 +313,20 @@ fun ActivityCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = activity.activityType,
-                style = AppTypography.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete activity",
-                    tint = MaterialTheme.colorScheme.error
+            Column {
+                Text(
+                    text = activity.activityType,
+                    style = AppTypography.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = timeFormat.format(Date(activity.date)),
+                    style = AppTypography.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                 )
             }
+
+            // Delete button removed here as requested
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -150,37 +335,45 @@ fun ActivityCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(
-                    text = "Duration: ${activity.duration} min",
-                    style = MaterialTheme.typography.bodyMedium
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatItem(
+                    icon = Icons.Default.Timer,
+                    value = "${activity.duration} min",
+                    color = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = "Calories: ${activity.calories} kcal",
-                    style = MaterialTheme.typography.bodyMedium
+                StatItem(
+                    icon = Icons.Default.LocalFireDepartment,
+                    value = "${activity.calories} kcal",
+                    color = MaterialTheme.colorScheme.tertiary
                 )
-                Text(
-                    text = "Distance: %.2f km".format(activity.distance),
-                    style = AppTypography.typography.bodyMedium
+                StatItem(
+                    icon = Icons.Default.Map,
+                    value = "%.2f km".format(activity.distance),
+                    color = MaterialTheme.colorScheme.secondary
                 )
-                activity.steps?.let {
+            }
+        }
+
+        activity.steps?.let {
+            if (it > 0) {
+                Spacer(modifier = Modifier.height(Spacing.xs))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.DirectionsWalk,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Steps: $it",
-                        style = AppTypography.typography.bodyMedium
+                        text = "$it steps",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-            }
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = dateFormat.format(Date(activity.date)),
-                    style = AppTypography.typography.bodySmall
-                )
-                Text(
-                    text = timeFormat.format(Date(activity.date)),
-                    style = AppTypography.typography.bodySmall
-                )
             }
         }
 
@@ -192,6 +385,28 @@ fun ActivityCard(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
             )
         }
+    }
+}
+
+@Composable
+private fun StatItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    value: String,
+    color: androidx.compose.ui.graphics.Color
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -351,5 +566,5 @@ private fun StatRow(title: String, value: String) {
 @Preview (showSystemUi = true)
 @Composable
 fun LogActivityPreview() {
-
+    // Preview content
 }

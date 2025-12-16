@@ -110,8 +110,7 @@ fun PlanScreen(
                     } else {
                         activities.take(3).forEach { activity ->
                             ActivityCard(
-                                activity = activity,
-                                onDelete = { activityViewModel.deleteActivity(activity) }
+                                activity = activity
                             )
                             Spacer(modifier = Modifier.height(Spacing.md))
                         }
