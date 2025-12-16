@@ -132,7 +132,7 @@ fun ExerciseCard(
 
                 // Teks Otot
                 Text(
-                    text = exercise.muscle?.replaceFirstChar { it.uppercase() } ?: "General",
+                    text = exercise.category?.replaceFirstChar { it.uppercase() } ?: "General",
                     // Gunakan style yang lebih kecil untuk kontras
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary,

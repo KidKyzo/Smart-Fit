@@ -26,7 +26,7 @@ object NetworkModule {
 
 
     // TODO: Replace with your NEW Key from ExerciseDB (subscribe to the Basic Plan first!)
-    private const val NINJA_BASE_URL = "https://api.api-ninjas.com/"
+    private const val GITHUB_BASE_URL = "https://raw.githubusercontent.com/"
     private const val NINJA_API_KEY = "mPlMTvvjm8DegZx1ns5QWw==9ylx4Y2OgkvNsfot" //
     
     /**
@@ -86,7 +86,7 @@ object NetworkModule {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(NINJA_BASE_URL)
+            .baseUrl(GITHUB_BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -123,7 +123,7 @@ fun ExerciseItem(exercise: ExerciseDto, onClick: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = exercise.muscle?.replaceFirstChar { it.uppercase() } ?: "General",
+                        text = exercise.category?.replaceFirstChar { it.uppercase() } ?: "General",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -133,7 +133,7 @@ fun ExerciseItem(exercise: ExerciseDto, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = exercise.difficulty?.replaceFirstChar { it.uppercase() } ?: "Easy",
+                        text = exercise.level?.replaceFirstChar { it.uppercase() } ?: "Easy",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary
                     )
