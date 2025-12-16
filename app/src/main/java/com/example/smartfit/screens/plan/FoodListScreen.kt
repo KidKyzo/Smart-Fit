@@ -4,13 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,12 +34,17 @@ fun FoodListScreen(
     val foods by foodViewModel.searchResults.collectAsState()
     val isLoading by foodViewModel.isSearching.collectAsState()
     val error by foodViewModel.searchError.collectAsState()
+    val hasMore by foodViewModel.hasMore.collectAsState()
+    val sortOption by foodViewModel.sortOption.collectAsState()
     
     var searchQuery by remember { mutableStateOf("") }
+    var showSortMenu by remember { mutableStateOf(false) }
     
-    // Load initial foods
+    // Load initial Indonesian/Malaysian foods
     LaunchedEffect(Unit) {
-        foodViewModel.searchFoods("healthy")
+        if (foods.isEmpty()) {
+            foodViewModel.searchFoods("nasi goreng")
+        }
     }
     
     AppScaffold(
@@ -44,10 +52,54 @@ fun FoodListScreen(
             CompactTopAppBar(
                 title = { Text("Food & Nutrition") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { 
+                        foodViewModel.resetSearchAndSort()
+                        navController.popBackStack()
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    // Sort button
+                    IconButton(onClick = { showSortMenu = true }) {
+                        Icon(Icons.Default.Sort, contentDescription = "Sort")
+                    }
+                    
+                    // Sort dropdown menu
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Lowest Calories") },
+                            onClick = {
+                                foodViewModel.setSortOption(FoodViewModel.SortOption.LOWEST_CALORIES)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Highest Calories") },
+                            onClick = {
+                                foodViewModel.setSortOption(FoodViewModel.SortOption.HIGHEST_CALORIES)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("A to Z") },
+                            onClick = {
+                                foodViewModel.setSortOption(FoodViewModel.SortOption.A_TO_Z)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Z to A") },
+                            onClick = {
+                                foodViewModel.setSortOption(FoodViewModel.SortOption.Z_TO_A)
+                                showSortMenu = false
+                            }
                         )
                     }
                 }
@@ -67,7 +119,7 @@ fun FoodListScreen(
                     if (it.length >= 3) {
                         foodViewModel.searchFoods(it)
                     } else if (it.isEmpty()) {
-                        foodViewModel.searchFoods("healthy")
+                        foodViewModel.searchFoods("nasi goreng")
                     }
                 },
                 label = { Text("Search foods...") },
@@ -78,6 +130,14 @@ fun FoodListScreen(
                     .fillMaxWidth()
                     .padding(horizontal = Spacing.lg, vertical = Spacing.md),
                 singleLine = true
+            )
+            
+            // Current sort indicator
+            Text(
+                text = "Sorted by: ${getSortLabel(sortOption)}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.xs)
             )
             
             // Error message
@@ -91,7 +151,7 @@ fun FoodListScreen(
             }
             
             // Loading indicator
-            if (isLoading) {
+            if (isLoading && foods.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -99,8 +159,25 @@ fun FoodListScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                // Food List
+                // Food List with infinite scroll
+                val listState = rememberLazyListState()
+                
+                // Detect when user reaches bottom
+                LaunchedEffect(listState) {
+                    snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                        .collect { lastVisibleIndex ->
+                            if (lastVisibleIndex != null && 
+                                lastVisibleIndex >= foods.size - 3 && 
+                                hasMore && 
+                                !isLoading) {
+                                // Load more when 3 items from bottom
+                                foodViewModel.loadMore()
+                            }
+                        }
+                }
+                
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.md)
@@ -115,6 +192,20 @@ fun FoodListScreen(
                                 navController.navigate("food_detail/${food.id}")
                             }
                         )
+                    }
+                    
+                    // Loading indicator at bottom when fetching more
+                    if (isLoading && foods.isNotEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Spacing.md),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                     
                     if (foods.isEmpty() && !isLoading) {
@@ -136,6 +227,16 @@ fun FoodListScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun getSortLabel(sortOption: FoodViewModel.SortOption): String {
+    return when (sortOption) {
+        FoodViewModel.SortOption.LOWEST_CALORIES -> "Lowest Calories"
+        FoodViewModel.SortOption.HIGHEST_CALORIES -> "Highest Calories"
+        FoodViewModel.SortOption.A_TO_Z -> "A to Z"
+        FoodViewModel.SortOption.Z_TO_A -> "Z to A"
     }
 }
 

@@ -57,6 +57,13 @@ class FoodIntakeRepository(
     }
     
     /**
+     * Reinsert food intake log (for undo)
+     */
+    suspend fun reinsertFoodIntake(foodIntake: FoodIntakeLog) {
+        foodIntakeDao.insertFoodIntake(foodIntake)
+    }
+    
+    /**
      * Get start and end of today in milliseconds
      */
     private fun getTodayBounds(): Pair<Long, Long> {

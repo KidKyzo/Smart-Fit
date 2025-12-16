@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.smartfit.data.database.AppDatabase
 import com.example.smartfit.data.database.FoodIntakeLog
 import com.example.smartfit.data.model.FoodData
-import com.example.smartfit.data.model.MockFoodData
 import com.example.smartfit.data.network.NetworkModule
 import com.example.smartfit.data.repository.FoodIntakeRepository
 import com.example.smartfit.data.repository.FoodRepository
@@ -39,6 +38,24 @@ class FoodViewModel(
     private val _searchError = MutableStateFlow<String?>(null)
     val searchError: StateFlow<String?> = _searchError.asStateFlow()
     
+    // Pagination state
+    private val _currentPage = MutableStateFlow(0)
+    private val _hasMore = MutableStateFlow(true)
+    val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+    
+    private var currentQuery = ""
+    
+    // Sort state
+    enum class SortOption {
+        LOWEST_CALORIES,
+        HIGHEST_CALORIES,
+        A_TO_Z,
+        Z_TO_A
+    }
+    
+    private val _sortOption = MutableStateFlow(SortOption.A_TO_Z)
+    val sortOption: StateFlow<SortOption> = _sortOption.asStateFlow()
+    
     // Today's food intake
     val todayFoodIntake = foodIntakeRepository.getTodayFoodIntake()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -47,13 +64,29 @@ class FoodViewModel(
     private val _todayCalorieIntake = MutableStateFlow(0)
     val todayCalorieIntake: StateFlow<Int> = _todayCalorieIntake.asStateFlow()
     
+    companion object {
+        private const val ITEMS_PER_PAGE = 20
+    }
+    
+    // Default search queries for Indonesian and Malaysian foods
+    private val defaultSearchQueries = listOf(
+        "nasi goreng",
+        "rendang",
+        "satay",
+        "nasi lemak",
+        "mie goreng"
+    )
+    private var defaultQueryIndex = 0
+    
     init {
         loadTodayCalories()
+        // Load default Indonesian/Malaysian foods
+        searchFoods(defaultSearchQueries[0])
     }
     
     /**
-     * Search for foods by name
-     * Falls back to MockFoodData if API fails (e.g., IP restriction)
+     * Search for foods using FatSecret API
+     * Loads first page and removes duplicates
      */
     fun searchFoods(query: String) {
         if (query.isBlank()) {
@@ -61,35 +94,126 @@ class FoodViewModel(
             return
         }
         
+        currentQuery = query
+        
         viewModelScope.launch {
             _isSearching.value = true
             _searchError.value = null
+            _currentPage.value = 0
+            _hasMore.value = true
             
-            val result = foodRepository.searchFoods(query)
+            val result = foodRepository.searchFoods(query, page = 0)
             
             result.onSuccess { foods ->
-                if (foods.isNotEmpty()) {
-                    // API returned results
-                    _searchResults.value = foods
-                    Log.d("FoodViewModel", "API search successful: ${foods.size} foods")
-                } else {
-                    // API returned empty, use mock data
-                    Log.w("FoodViewModel", "API returned empty, using MockFoodData")
-                    _searchResults.value = MockFoodData.getFoods().filter { 
-                        it.title.contains(query, ignoreCase = true) 
+                // Remove duplicates by foodId
+                val uniqueFoods = foods.distinctBy { it.id }
+                
+                // Further deduplicate by food name (merge same foods with different servings)
+                val deduplicatedFoods = uniqueFoods.groupBy { it.title }
+                    .map { (_, foodList) ->
+                        // Take first food as base, it already has default serving options
+                        foodList.first()
                     }
-                }
+                
+                // Apply sorting
+                val sortedFoods = applySorting(deduplicatedFoods)
+                
+                // Take first page
+                _searchResults.value = sortedFoods.take(ITEMS_PER_PAGE)
+                
+                // Check if there are more results
+                _hasMore.value = sortedFoods.size > ITEMS_PER_PAGE
+                
+                Log.d("FoodViewModel", "API search successful: ${uniqueFoods.size} unique foods, ${deduplicatedFoods.size} after deduplication, showing ${_searchResults.value.size}")
             }.onFailure { error ->
-                // API failed (IP restriction, network error, etc.), use mock data
-                Log.e("FoodViewModel", "API search failed, using MockFoodData", error)
-                _searchError.value = "Using sample data (API: ${error.message})"
-                _searchResults.value = MockFoodData.getFoods().filter { 
-                    it.title.contains(query, ignoreCase = true) 
-                }
+                Log.e("FoodViewModel", "API search failed", error)
+                _searchError.value = error.message ?: "Failed to search foods"
+                _searchResults.value = emptyList()
+                _hasMore.value = false
             }
             
             _isSearching.value = false
         }
+    }
+    
+    /**
+     * Load more results (pagination)
+     * Fetches next page from API
+     */
+    fun loadMore() {
+        if (!_hasMore.value || _isSearching.value || currentQuery.isBlank()) return
+        
+        viewModelScope.launch {
+            _isSearching.value = true
+            
+            val nextPage = _currentPage.value + 1
+            val result = foodRepository.searchFoods(currentQuery, page = nextPage)
+            
+            result.onSuccess { newFoods ->
+                if (newFoods.isEmpty()) {
+                    // No more results
+                    _hasMore.value = false
+                } else {
+                    // Remove duplicates
+                    val uniqueNewFoods = newFoods.distinctBy { it.id }
+                    
+                    // Combine with existing results
+                    val allFoods = (_searchResults.value + uniqueNewFoods).distinctBy { it.id }
+                    
+                    // Apply sorting
+                    val sortedFoods = applySorting(allFoods)
+                    
+                    _searchResults.value = sortedFoods
+                    _currentPage.value = nextPage
+                    
+                    // Check if we got less than expected (means no more pages)
+                    _hasMore.value = uniqueNewFoods.size >= ITEMS_PER_PAGE
+                    
+                    Log.d("FoodViewModel", "Loaded page $nextPage: ${uniqueNewFoods.size} new foods, total: ${sortedFoods.size}")
+                }
+            }.onFailure { error ->
+                Log.e("FoodViewModel", "Load more failed", error)
+                _hasMore.value = false
+            }
+            
+            _isSearching.value = false
+        }
+    }
+    
+    /**
+     * Change sort option
+     */
+    fun setSortOption(option: SortOption) {
+        _sortOption.value = option
+        
+        // Re-sort existing results
+        val sortedFoods = applySorting(_searchResults.value)
+        _searchResults.value = sortedFoods
+    }
+    
+    /**
+     * Apply sorting to food list
+     */
+    private fun applySorting(foods: List<FoodData>): List<FoodData> {
+        return when (_sortOption.value) {
+            SortOption.LOWEST_CALORIES -> foods.sortedBy { it.calories }
+            SortOption.HIGHEST_CALORIES -> foods.sortedByDescending { it.calories }
+            SortOption.A_TO_Z -> foods.sortedBy { it.title }
+            SortOption.Z_TO_A -> foods.sortedByDescending { it.title }
+        }
+    }
+    
+    /**
+     * Reset search and sort to defaults
+     */
+    fun resetSearchAndSort() {
+        currentQuery = ""
+        _searchResults.value = emptyList()
+        _searchError.value = null
+        _currentPage.value = 0
+        _hasMore.value = true
+        _sortOption.value = SortOption.A_TO_Z
+        _isSearching.value = false
     }
     
     /**
@@ -145,6 +269,18 @@ class FoodViewModel(
     fun clearSearch() {
         _searchResults.value = emptyList()
         _searchError.value = null
+        _currentPage.value = 0
+        _hasMore.value = true
+    }
+    
+    /**
+     * Undo delete food intake (re-insert)
+     */
+    fun undoDeleteFoodIntake(foodIntake: FoodIntakeLog) {
+        viewModelScope.launch {
+            foodIntakeRepository.reinsertFoodIntake(foodIntake)
+            _todayCalorieIntake.value = foodIntakeRepository.getTodayTotalCalories()
+        }
     }
 }
 

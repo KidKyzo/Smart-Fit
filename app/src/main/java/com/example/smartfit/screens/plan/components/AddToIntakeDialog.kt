@@ -1,18 +1,20 @@
 package com.example.smartfit.screens.plan.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.smartfit.data.model.FoodData
+import com.example.smartfit.data.model.ServingOption
+import com.example.smartfit.data.model.calculateNutrition
 import com.example.smartfit.ui.designsystem.Spacing
 
 /**
  * Dialog for adding food to daily intake
- * Allows user to specify servings and meal type
+ * Allows user to select serving size and meal type
+ * Nutrition values update based on selected serving
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,11 +23,17 @@ fun AddToIntakeDialog(
     onDismiss: () -> Unit,
     onConfirm: (servings: Float, mealType: String) -> Unit
 ) {
-    var servings by remember { mutableStateOf("1.0") }
+    var selectedServingIndex by remember { mutableStateOf(0) }
     var selectedMeal by remember { mutableStateOf("Snack") }
-    var expanded by remember { mutableStateOf(false) }
+    var servingExpanded by remember { mutableStateOf(false) }
+    var mealExpanded by remember { mutableStateOf(false) }
     
     val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
+    val servingOptions = food.servingOptions
+    val selectedServing = servingOptions[selectedServingIndex]
+    
+    // Calculate nutrition for selected serving
+    val nutrition = food.calculateNutrition(selectedServing.grams)
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -38,31 +46,22 @@ fun AddToIntakeDialog(
                 // Food name
                 Text(
                     text = food.title,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 
-                // Servings input
-                OutlinedTextField(
-                    value = servings,
-                    onValueChange = { servings = it },
-                    label = { Text("Servings") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                
-                // Meal type dropdown
+                // Serving size dropdown
                 ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                    expanded = servingExpanded,
+                    onExpandedChange = { servingExpanded = !servingExpanded }
                 ) {
                     OutlinedTextField(
-                        value = selectedMeal,
+                        value = selectedServing.label,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Meal Type") },
+                        label = { Text("Serving Size") },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = servingExpanded)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -71,39 +70,108 @@ fun AddToIntakeDialog(
                     )
                     
                     ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        expanded = servingExpanded,
+                        onDismissRequest = { servingExpanded = false }
                     ) {
-                        mealTypes.forEach { meal ->
+                        servingOptions.forEachIndexed { index, serving ->
                             DropdownMenuItem(
-                                text = { Text(meal) },
+                                text = { Text(serving.label) },
                                 onClick = {
-                                    selectedMeal = meal
-                                    expanded = false
+                                    selectedServingIndex = index
+                                    servingExpanded = false
                                 }
                             )
                         }
                     }
                 }
                 
-                // Calorie calculation
-                val servingsFloat = servings.toFloatOrNull() ?: 1f
-                val totalCalories = (servingsFloat * food.calories).toInt()
+                // Meal type dropdown
+                ExposedDropdownMenuBox(
+                    expanded = mealExpanded,
+                    onExpandedChange = { mealExpanded = !mealExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedMeal,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Meal Type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = mealExpanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    
+                    ExposedDropdownMenu(
+                        expanded = mealExpanded,
+                        onDismissRequest = { mealExpanded = false }
+                    ) {
+                        mealTypes.forEach { meal ->
+                            DropdownMenuItem(
+                                text = { Text(meal) },
+                                onClick = {
+                                    selectedMeal = meal
+                                    mealExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
                 
-                Divider(modifier = Modifier.padding(vertical = Spacing.xs))
+                HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.xs))
+                
+                // Nutrition information for selected serving
+                Text(
+                    text = "Nutrition Information",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    Text("Calories:", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        text = "Total Calories:",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "$totalCalories kcal",
-                        style = MaterialTheme.typography.bodyLarge,
+                        "${nutrition.calories} kcal",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Protein:", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "${String.format("%.1f", nutrition.protein)}g",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Carbs:", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "${String.format("%.1f", nutrition.carbs)}g",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Fats:", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "${String.format("%.1f", nutrition.fats)}g",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -111,8 +179,9 @@ fun AddToIntakeDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val servingsFloat = servings.toFloatOrNull() ?: 1f
-                    onConfirm(servingsFloat, selectedMeal)
+                    // Convert grams to servings (based on 100g)
+                    val servings = selectedServing.grams / 100f
+                    onConfirm(servings, selectedMeal)
                 }
             ) {
                 Text("Add")

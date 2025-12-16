@@ -16,20 +16,21 @@ class FoodRepository(
     /**
      * Search for foods by name
      * @param query Search term (e.g., "chicken breast")
+     * @param page Page number for pagination (0-indexed)
      * @return Result with list of foods or error
      */
-    suspend fun searchFoods(query: String): Result<List<FoodData>> {
+    suspend fun searchFoods(query: String, page: Int = 0): Result<List<FoodData>> {
         return try {
-            Log.d("FoodRepository", "Searching for: $query")
-            val response = api.searchFoods(query = query)
+            Log.d("FoodRepository", "Searching for: $query (page $page)")
+            val response = api.searchFoods(query = query, pageNumber = page)
             Log.d("FoodRepository", "API Response: $response")
             
-            val foods = response.foods?.food?.map { 
+            val foods = response.foods?.food?.mapNotNull { 
                 Log.d("FoodRepository", "Food DTO: $it")
-                it.toFoodData() 
+                it.toFoodData()  // Returns null if not from Malaysia/Indonesia
             } ?: emptyList()
             
-            Log.d("FoodRepository", "Converted ${foods.size} foods")
+            Log.d("FoodRepository", "Converted ${foods.size} Malaysian/Indonesian foods")
             Result.success(foods)
         } catch (e: Exception) {
             Log.e("FoodRepository", "Error searching foods", e)
