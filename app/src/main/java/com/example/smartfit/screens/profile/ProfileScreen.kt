@@ -1,81 +1,52 @@
 package com.example.smartfit.screens.profile
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SupervisorAccount
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartfit.R
+import com.example.smartfit.Routes
+import com.example.smartfit.screens.profile.components.AvatarSelector
 import com.example.smartfit.screens.profile.components.BMIIndicator
-import com.example.smartfit.ui.designsystem.Alpha
-import com.example.smartfit.ui.designsystem.AppCard
-import com.example.smartfit.ui.designsystem.AppScaffold
-import com.example.smartfit.ui.designsystem.AppTypography
-import com.example.smartfit.ui.designsystem.BorderWidth
-import com.example.smartfit.ui.designsystem.CompactTopAppBar
-import com.example.smartfit.ui.designsystem.SectionHeader
-import com.example.smartfit.ui.designsystem.Shapes
-import com.example.smartfit.ui.designsystem.Sizing
-import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.utils.ValidationUtils
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
+
+// Preset avatar resource IDs
+val presetAvatars = listOf(
+    R.drawable.hanni_profile,
+    R.drawable.big_bang,
+    R.drawable.faker,
+    R.drawable.haerin,
+    R.drawable.kim_chaewon
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,17 +56,21 @@ fun ProfileScreen(
     userViewModel: UserViewModel,
     activityViewModel: ActivityViewModel
 ) {
-    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
     // Load persisted user data
     val userName by userViewModel.name.collectAsState()
     val userAge by userViewModel.age.collectAsState()
     val userWeight by userViewModel.weight.collectAsState()
     val userHeight by userViewModel.height.collectAsState()
     val userGender by userViewModel.gender.collectAsState()
+    val avatarType by userViewModel.avatarType.collectAsState()
+    val avatarId by userViewModel.avatarId.collectAsState()
+    val customAvatarPath by userViewModel.customAvatarPath.collectAsState()
 
-    var showEditDialog by remember { mutableStateOf(false) }
+    var showEditPersonalInfoDialog by remember { mutableStateOf(false) }
+    var showEditNameAvatarDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var showSettingsSheet by remember { mutableStateOf(false) }
+
+    val isDarkMode = isSystemInDarkTheme()
 
     // Calculate BMI from persisted data
     val bmi = remember(userWeight, userHeight) {
@@ -119,15 +94,7 @@ fun ProfileScreen(
     AppScaffold(
         topBar = {
             CompactTopAppBar(
-                title = { Text("Profile") },
-                actions = {
-                    IconButton(onClick = { showSettingsSheet = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
-                    }
-                }
+                title = { Text("Profile") }
             )
         }
     ) { padding ->
@@ -139,38 +106,94 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             item {
-                // Profile Header
+                // Profile Header with Avatar - CLICKABLE to edit
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Avatar with edit badge
                     Box(
-                        modifier = Modifier
-                            .size(Sizing.profileImageSizeLarge)
-                            .clip(Shapes.circle)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .border(
-                                BorderStroke(BorderWidth.thick, MaterialTheme.colorScheme.primary),
-                                Shapes.circle
-                            ),
+                        modifier = Modifier.size(Sizing.profileImageSizeLarge),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.hanni_profile),
-                            contentDescription = "Profile Picture",
-                            contentScale = ContentScale.Crop,
+                        // Avatar circle
+                        Box(
                             modifier = Modifier
-                                .size(Sizing.profileImageSize)
+                                .size(Sizing.profileImageSizeLarge)
                                 .clip(Shapes.circle)
-                        )
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .border(
+                                    BorderStroke(BorderWidth.thick, MaterialTheme.colorScheme.primary),
+                                    Shapes.circle
+                                )
+                                .clickable { showEditNameAvatarDialog = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Display avatar based on type
+                            if (avatarType == "custom" && customAvatarPath != null) {
+                                val bitmap = remember(customAvatarPath) {
+                                    BitmapFactory.decodeFile(customAvatarPath)
+                                }
+                                bitmap?.let {
+                                    Image(
+                                        bitmap = it.asImageBitmap(),
+                                        contentDescription = "Profile Picture",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(Sizing.profileImageSize)
+                                            .clip(Shapes.circle)
+                                    )
+                                } ?: run {
+                                    // Fallback if bitmap fails to load
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = "Profile",
+                                        modifier = Modifier.size(48.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                // Preset avatar
+                                val resourceId = presetAvatars.getOrElse(avatarId) { presetAvatars[0] }
+                                Image(
+                                    painter = painterResource(id = resourceId),
+                                    contentDescription = "Profile Picture",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(Sizing.profileImageSize)
+                                        .clip(Shapes.circle)
+                                )
+                            }
+                        }
+                        
+                        // Edit badge - positioned outside at bottom-right
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .offset(x = (-4).dp, y = (-4).dp)
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                                .clickable { showEditNameAvatarDialog = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit profile",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
+                    // Username (non-clickable)
                     Text(
                         text = userName,
                         style = AppTypography.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.xs))
@@ -188,22 +211,38 @@ fun ProfileScreen(
             }
 
             item {
-                // User Stats Card
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = 1
+                // Personal Information Card - CLICKABLE
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showEditPersonalInfoDialog = true },
+                    elevation = CardDefaults.cardElevation(defaultElevation = Elevation.small),
+                    shape = Shapes.medium
                 ) {
-                    SectionHeader(title = "Personal Information")
-                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Column(modifier = Modifier.padding(Spacing.md)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Personal Information",
+                                style = AppTypography.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(Spacing.sm))
 
-                    InfoRow("Age", "$userAge years")
-                    InfoRow("Weight", "$userWeight kg")
-                    InfoRow("Height", "$userHeight cm")
-                    InfoRow("Gender", userGender)
+                        InfoRow("Age", "$userAge years")
+                        InfoRow("Weight", "$userWeight kg")
+                        InfoRow("Height", "$userHeight cm")
+                        InfoRow("Gender", userGender)
+                    }
                 }
             }
+
             item {
-                // Weekly Report Card - Enhanced with comparisons
+                // Weekly Report Card
                 AppCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -217,7 +256,6 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
-                        // Workout Duration Card
                         ReportCard(
                             modifier = Modifier.weight(1f),
                             title = "Total Workout",
@@ -226,11 +264,10 @@ fun ProfileScreen(
                                 "+$durationDiff min" else "$durationDiff min",
                             comparisonColor = if (durationDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
                             icon = Icons.Default.FitnessCenter,
-                            iconTint = Color(0xFF2196F3), // Blue
+                            iconTint = Color(0xFF2196F3),
                             onClick = { navController.navigate("weekly_report/0") }
                         )
 
-                        // Average Steps Card
                         ReportCard(
                             modifier = Modifier.weight(1f),
                             title = "Avg Daily Steps",
@@ -238,33 +275,92 @@ fun ProfileScreen(
                             comparisonValue = if (stepsDiff >= 0) "+$stepsDiff" else "$stepsDiff",
                             comparisonColor = if (stepsDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
                             icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                            iconTint = Color(0xFF4CAF50), // Green
+                            iconTint = Color(0xFF4CAF50),
                             onClick = { navController.navigate("weekly_report/0") }
                         )
                     }
                 }
             }
+
+            item {
+                // Add spacing before navigation boxes
+                Spacer(modifier = Modifier.height(Spacing.lg))
+                
+                // Settings Box - Full width, separate row
+                NavigationBox(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "Settings",
+                    icon = Icons.Default.Settings,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                        alpha = if (isDarkMode) 0.7f else 1f
+                    ),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onClick = { navController.navigate(Routes.setting) }
+                )
+            }
+
+            item {
+                // Logout Box - Full width, separate row
+                NavigationBox(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "Logout",
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(
+                        alpha = if (isDarkMode) 0.7f else 1f
+                    ),
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    onClick = { showLogoutDialog = true }
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(Spacing.lg))
+            }
         }
     }
 
-    if (showEditDialog) {
-        EditProfileDialog(
+    // Edit Name and Avatar Dialog
+    if (showEditNameAvatarDialog) {
+        EditProfileNameAvatarDialog(
             currentName = userName,
-            currentAge = userAge,
-            currentWeight = userWeight,
-            currentHeight = userHeight,
-            currentGender = userGender, // Passed the current gender here
-            onDismiss = { showEditDialog = false },
-            onSave = { name, age, weight, height, gender ->
-                // Save user data to database (replaces old data, no duplication)
-                userViewModel.saveProfile(name, age, weight, height, gender)
-                showEditDialog = false
+            currentAvatarType = avatarType,
+            currentAvatarId = avatarId,
+            currentCustomPath = customAvatarPath,
+            onDismiss = { showEditNameAvatarDialog = false },
+            onSave = { name, newAvatarType, newAvatarId, newCustomPath ->
+                // Save name
+                userViewModel.updateName(name)
+                // Save avatar
+                if (newAvatarType == "preset") {
+                    userViewModel.updatePresetAvatar(newAvatarId)
+                } else if (newCustomPath != null) {
+                    userViewModel.updateCustomAvatar(newCustomPath)
+                }
+                showEditNameAvatarDialog = false
             }
         )
     }
+
+    // Edit Personal Info Dialog (Age, Weight, Height, Gender - NOT Name)
+    if (showEditPersonalInfoDialog) {
+        EditPersonalInfoDialog(
+            currentAge = userAge,
+            currentWeight = userWeight,
+            currentHeight = userHeight,
+            currentGender = userGender,
+            onDismiss = { showEditPersonalInfoDialog = false },
+            onSave = { age, weight, height, gender ->
+                userViewModel.updateBiodata(age, weight, height, gender)
+                showEditPersonalInfoDialog = false
+            }
+        )
+    }
+
+    // Logout Dialog
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
+            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
             title = { Text("Confirm Logout") },
             text = { Text("Are you sure you want to log out?") },
             confirmButton = {
@@ -272,89 +368,62 @@ fun ProfileScreen(
                     onClick = {
                         showLogoutDialog = false
                         userViewModel.logout()
-                    }
+                        navController.navigate(Routes.login) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text("Yes")
-
+                    Text("Logout")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
-                    Text("No")
-
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )
     }
+}
 
-    if (showSettingsSheet) {
-        AlertDialog(
-            onDismissRequest = { showSettingsSheet = false },
-            title = { Text("Settings") },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
-                ) {
-                    // Theme Toggle
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Switch Mode",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "Toggle dark / light theme",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                            )
-                        }
-                        Switch(
-                            checked = isDarkTheme ?: isSystemInDarkTheme(),
-                            onCheckedChange = { isChecked ->
-                                themeViewModel.toggleTheme(isChecked)
-                            }
-                        )
-                    }
-
-                    HorizontalDivider()
-
-                    // Edit Profile Button
-                    TextButton(
-                        onClick = {
-                            showSettingsSheet = false
-                            showEditDialog = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.md))
-                            Text("Edit Profile")
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showSettingsSheet = false }) {
-                    Text("Close")
-                }
-            }
-        )
+@Composable
+private fun NavigationBox(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: ImageVector,
+    containerColor: Color,
+    contentColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = Elevation.medium),
+        shape = Shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = contentColor,
+                modifier = Modifier.size(28.dp)
+            )
+            Text(
+                text = title,
+                style = AppTypography.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = contentColor
+            )
+        }
     }
 }
 
@@ -448,47 +517,134 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileDialog(
+fun EditProfileNameAvatarDialog(
     currentName: String,
-    currentAge: String,
-    currentWeight: String,
-    currentHeight: String,
-    currentGender: String, // Added missing parameter
+    currentAvatarType: String,
+    currentAvatarId: Int,
+    currentCustomPath: String?,
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String, String) -> Unit // Updated signature
+    onSave: (name: String, avatarType: String, avatarId: Int, customPath: String?) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
-    var gender by remember { mutableStateOf(currentGender) } // Now works correctly
-    var age by remember { mutableStateOf(currentAge) }
-    var weight by remember { mutableStateOf(currentWeight) }
-    var height by remember { mutableStateOf(currentHeight) }
-    var isGenderMenuExpanded by remember { mutableStateOf(false) }
+    var selectedAvatarType by remember { mutableStateOf(currentAvatarType) }
+    var selectedAvatarId by remember { mutableStateOf(currentAvatarId) }
+    var selectedCustomPath by remember { mutableStateOf(currentCustomPath) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Edit Profile") },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                val nameValidation = ValidationUtils.validateName(name)
-                // Now works because we added validateGender to ValidationUtils
-                val genderValidation = ValidationUtils.validateGender(gender)
-                val ageValidation = ValidationUtils.validateAge(age)
-                val weightValidation = ValidationUtils.validateWeight(weight)
-                val heightValidation = ValidationUtils.validateHeight(height)
-
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Name") },
                     singleLine = true,
-                    isError = !nameValidation.isValid,
-                    supportingText = if (!nameValidation.isValid) {
-                        { Text(nameValidation.errorMessage) }
-                    } else null
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                AvatarSelector(
+                    currentAvatarType = selectedAvatarType,
+                    currentAvatarId = selectedAvatarId,
+                    currentCustomPath = selectedCustomPath,
+                    onPresetSelected = { id ->
+                        selectedAvatarType = "preset"
+                        selectedAvatarId = id
+                        selectedCustomPath = null
+                    },
+                    onCustomSelected = { path ->
+                        selectedAvatarType = "custom"
+                        selectedCustomPath = path
+                    }
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name, selectedAvatarType, selectedAvatarId, selectedCustomPath) },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditPersonalInfoDialog(
+    currentAge: String,
+    currentWeight: String,
+    currentHeight: String,
+    currentGender: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String, String) -> Unit
+) {
+    var age by remember { mutableStateOf(currentAge) }
+    var weight by remember { mutableStateOf(currentWeight) }
+    var height by remember { mutableStateOf(currentHeight) }
+    var gender by remember { mutableStateOf(currentGender) }
+    var isGenderMenuExpanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Personal Information") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+            ) {
+                Text(
+                    text = "Update your health metrics",
+                    style = AppTypography.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                val ageValidation = ValidationUtils.validateAge(age)
+                val weightValidation = ValidationUtils.validateWeight(weight)
+                val heightValidation = ValidationUtils.validateHeight(height)
+
+                OutlinedTextField(
+                    value = age,
+                    onValueChange = { age = it },
+                    label = { Text("Age") },
+                    singleLine = true,
+                    isError = !ageValidation.isValid,
+                    supportingText = if (!ageValidation.isValid) {
+                        { Text(ageValidation.errorMessage) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    label = { Text("Weight (kg)") },
+                    singleLine = true,
+                    isError = !weightValidation.isValid,
+                    supportingText = if (!weightValidation.isValid) {
+                        { Text(weightValidation.errorMessage) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = height,
+                    onValueChange = { height = it },
+                    label = { Text("Height (cm)") },
+                    singleLine = true,
+                    isError = !heightValidation.isValid,
+                    supportingText = if (!heightValidation.isValid) {
+                        { Text(heightValidation.errorMessage) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 ExposedDropdownMenuBox(
@@ -500,7 +656,6 @@ fun EditProfileDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Gender") },
-                        leadingIcon = { Icon(Icons.Default.SupervisorAccount, contentDescription = null) },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGenderMenuExpanded)
                         },
@@ -509,7 +664,6 @@ fun EditProfileDialog(
                             .menuAnchor()
                     )
 
-                    // This is the actual dropdown menu with the options
                     ExposedDropdownMenu(
                         expanded = isGenderMenuExpanded,
                         onDismissRequest = { isGenderMenuExpanded = false }
@@ -517,58 +671,25 @@ fun EditProfileDialog(
                         DropdownMenuItem(
                             text = { Text("Male") },
                             onClick = {
-                                gender = "Male" // Update the state
-                                isGenderMenuExpanded = false // Close the menu
+                                gender = "Male"
+                                isGenderMenuExpanded = false
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Female") },
                             onClick = {
-                                gender = "Female" // Update the state
-                                isGenderMenuExpanded = false // Close the menu
+                                gender = "Female"
+                                isGenderMenuExpanded = false
                             }
                         )
                     }
                 }
-                OutlinedTextField(
-                    value = age,
-                    onValueChange = { age = it },
-                    label = { Text("Age") },
-                    singleLine = true,
-                    isError = !ageValidation.isValid,
-                    supportingText = if (!ageValidation.isValid) {
-                        { Text(ageValidation.errorMessage) }
-                    } else null
-                )
-                OutlinedTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    label = { Text("Weight (kg)") },
-                    singleLine = true,
-                    isError = !weightValidation.isValid,
-                    supportingText = if (!weightValidation.isValid) {
-                        { Text(weightValidation.errorMessage) }
-                    } else null
-                )
-                OutlinedTextField(
-                    value = height,
-                    onValueChange = { height = it },
-                    label = { Text("Height (cm)") },
-                    singleLine = true,
-                    isError = !heightValidation.isValid,
-                    supportingText = if (!heightValidation.isValid) {
-                        { Text(heightValidation.errorMessage) }
-                    } else null
-                )
             }
         },
         confirmButton = {
             TextButton(
-                // Passed all 5 arguments including gender
-                onClick = { onSave(name, age, weight, height, gender) },
-                enabled = ValidationUtils.validateName(name).isValid &&
-                        ValidationUtils.validateGender(gender).isValid &&
-                        ValidationUtils.validateAge(age).isValid &&
+                onClick = { onSave(age, weight, height, gender) },
+                enabled = ValidationUtils.validateAge(age).isValid &&
                         ValidationUtils.validateWeight(weight).isValid &&
                         ValidationUtils.validateHeight(height).isValid
             ) {

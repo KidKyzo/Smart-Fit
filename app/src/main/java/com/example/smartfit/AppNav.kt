@@ -144,7 +144,7 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 LogActivity(viewModel = activityViewModel, onBack = { navController.popBackStack() })
             }
             composable(Routes.setting) {
-                SettingScreen(Modifier, navController, themeViewModel)
+                SettingScreen(Modifier, navController, themeViewModel, userViewModel)
             }
 
             // --- UPDATED: WORKOUT LIST ROUTE ---
@@ -158,16 +158,6 @@ fun AppNav(themeViewModel: ThemeViewModel) {
 
             composable(Routes.foodList) {
                 com.example.smartfit.screens.plan.FoodListScreen(navController, foodViewModel)
-            }
-
-            // Note: Since this API doesn't have a "Detail" endpoint returning ID,
-            // you might need to pass the whole object or just use the title if you want details.
-            // For now, keeping your existing structure:
-            composable(Routes.workoutList) {
-                com.example.smartfit.screens.plan.WorkoutListScreen(
-                    navController = navController,
-                    viewModel = exerciseViewModel // Pass the INSTANCE
-                )
             }
 
             composable(Routes.workoutDetail) {
@@ -192,7 +182,12 @@ fun AppNav(themeViewModel: ThemeViewModel) {
 
             composable("${Routes.weeklyReport}/{weekOffset}") { backStackEntry ->
                 val weekOffset = backStackEntry.arguments?.getString("weekOffset")?.toIntOrNull() ?: 0
-                com.example.smartfit.screens.profile.WeeklyReportScreen(navController, activityViewModel, weekOffset)
+                com.example.smartfit.screens.profile.WeeklyReportScreen(
+                    navController = navController,
+                    viewModel = activityViewModel,
+                    foodViewModel = foodViewModel,
+                    weekOffset = weekOffset
+                )
             }
         }
     }

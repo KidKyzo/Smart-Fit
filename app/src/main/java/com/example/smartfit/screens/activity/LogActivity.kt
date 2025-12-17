@@ -38,18 +38,6 @@ fun LogActivity(
     val snackbarHostState = remember { SnackbarHostState() }
     var deletedItem by remember { mutableStateOf<ActivityLog?>(null) }
 
-    // Show the summary dialog when a new activity is logged
-    lastAddedActivity?.let { activity ->
-        FinishTrackingScreen(
-            steps = activity.steps ?: 0,
-            distance = activity.distance,
-            calories = activity.calories,
-            onDone = {
-                viewModel.clearLastAddedActivity()
-            }
-        )
-    }
-
     // Handle Undo Snackbar logic
     LaunchedEffect(deletedItem) {
         deletedItem?.let { item ->
@@ -522,45 +510,6 @@ fun AddActivityDialog(
             }
         }
     )
-}
-
-@Composable
-fun FinishTrackingScreen(
-    steps: Int,
-    distance: Double,
-    calories: Int,
-    onDone: () -> Unit
-) {
-    // This could be a full screen or a dialog
-    AlertDialog(
-        onDismissRequest = onDone,
-        title = { Text("Activity Complete!", style = AppTypography.typography.headlineSmall) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                Text("Congratulations on finishing your activity!", style = AppTypography.typography.bodyLarge)
-                HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
-                StatRow(title = "Total Steps", value = steps.toString())
-                StatRow(title = "Distance", value = "%.2f km".format(distance))
-                StatRow(title = "Calories Burned", value = "$calories kcal")
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDone) {
-                Text("Done")
-            }
-        }
-    )
-}
-
-@Composable
-private fun StatRow(title: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(title, style = AppTypography.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium))
-        Text(value, style = AppTypography.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
-    }
 }
 
 @Preview (showSystemUi = true)

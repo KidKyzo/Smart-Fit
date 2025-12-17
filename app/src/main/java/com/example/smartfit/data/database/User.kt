@@ -29,6 +29,9 @@ data class User(
     val weight: Float, // in kg
     val height: Float, // in cm
     val gender: String = "Not specified",
+    val avatarType: String = "preset", // "preset" or "custom"
+    val avatarId: Int = 0, // Index for preset avatars (0-4)
+    val customAvatarPath: String? = null, // Path for custom uploaded image
     val createdAt: Long,
     val updatedAt: Long
 )

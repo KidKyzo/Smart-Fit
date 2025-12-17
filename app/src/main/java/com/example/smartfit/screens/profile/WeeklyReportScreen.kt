@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
 import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.ActivityViewModel
+import com.example.smartfit.viewmodel.FoodViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +35,7 @@ import java.util.*
 fun WeeklyReportScreen(
     navController: NavController,
     viewModel: ActivityViewModel,
+    foodViewModel: FoodViewModel? = null,
     weekOffset: Int = 0
 ) {
     var currentWeekOffset by remember { mutableStateOf(weekOffset) }
@@ -49,6 +51,12 @@ fun WeeklyReportScreen(
     val totalCalories = dailyActivities.sumOf { it.calories }
     val totalDistance = dailyActivities.sumOf { it.distance }
     val longestActivity = viewModel.getLongestActivityForDay(selectedDate)
+    
+    // Get calorie intake for selected day
+    var calorieIntake by remember { mutableStateOf(0) }
+    LaunchedEffect(selectedDate, foodViewModel) {
+        calorieIntake = foodViewModel?.getCaloriesForDate(selectedDate) ?: 0
+    }
     
     AppScaffold(
         topBar = {
@@ -88,30 +96,47 @@ fun WeeklyReportScreen(
                 )
             }
             
-            // Summary Cards
+            // Summary Cards - 2x2 Grid Layout
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
-                    SummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Duration",
-                        value = "$totalDuration min",
-                        color = Color(0xFF2196F3)
-                    )
-                    SummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Calories",
-                        value = "$totalCalories kcal",
-                        color = Color(0xFFFF5722)
-                    )
-                    SummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Distance",
-                        value = String.format("%.1f km", totalDistance),
-                        color = Color(0xFF4CAF50)
-                    )
+                    // First Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        SummaryCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Duration",
+                            value = "$totalDuration min",
+                            color = Color(0xFF2196F3)
+                        )
+                        SummaryCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Burned",
+                            value = "$totalCalories kcal",
+                            color = Color(0xFFFF5722)
+                        )
+                    }
+                    // Second Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        SummaryCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Distance",
+                            value = String.format("%.1f km", totalDistance),
+                            color = Color(0xFF4CAF50)
+                        )
+                        SummaryCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Intake",
+                            value = "$calorieIntake kcal",
+                            color = Color(0xFF9C27B0)
+                        )
+                    }
                 }
             }
             

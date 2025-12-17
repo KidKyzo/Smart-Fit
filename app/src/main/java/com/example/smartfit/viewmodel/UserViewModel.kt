@@ -188,6 +188,117 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     fun clearLoginError() {
         _loginError.value = null
     }
+    
+    // ========== Password Management ==========
+    
+    private val _passwordChangeResult = MutableStateFlow<PasswordChangeResult?>(null)
+    val passwordChangeResult: StateFlow<PasswordChangeResult?> = _passwordChangeResult.asStateFlow()
+    
+    /**
+     * Change password with old password validation
+     */
+    fun changePassword(oldPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val success = userRepository.updatePassword(oldPassword, newPassword)
+                _passwordChangeResult.value = if (success) {
+                    PasswordChangeResult.Success
+                } else {
+                    PasswordChangeResult.Error("Current password is incorrect")
+                }
+            } catch (e: Exception) {
+                _passwordChangeResult.value = PasswordChangeResult.Error("Failed to change password: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    fun clearPasswordChangeResult() {
+        _passwordChangeResult.value = null
+    }
+    
+    // ========== Avatar Management ==========
+    
+    val avatarType: StateFlow<String> = userProfile.map { it?.avatarType ?: "preset" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "preset")
+    
+    val avatarId: StateFlow<Int> = userProfile.map { it?.avatarId ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    
+    val customAvatarPath: StateFlow<String?> = userProfile.map { it?.customAvatarPath }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    
+    /**
+     * Update avatar to a preset option
+     */
+    fun updatePresetAvatar(avatarId: Int) {
+        viewModelScope.launch {
+            userRepository.updateAvatar("preset", avatarId, null)
+        }
+    }
+    
+    /**
+     * Update avatar to a custom uploaded image
+     */
+    fun updateCustomAvatar(imagePath: String) {
+        viewModelScope.launch {
+            userRepository.updateAvatar("custom", 0, imagePath)
+        }
+    }
+    
+    /**
+     * Update only name (for profile edit that excludes biodata)
+     */
+    fun updateName(newName: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val currentUser = userRepository.getUser()
+                if (currentUser != null) {
+                    // Preserve avatar data when updating name
+                    val updatedUser = currentUser.copy(
+                        name = newName,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    userRepository.updateUser(updatedUser)
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Update only biodata (age, weight, height, gender) - not name
+     */
+    fun updateBiodata(age: String, weight: String, height: String, gender: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val currentUser = userRepository.getUser()
+                if (currentUser != null) {
+                    // Preserve avatar data when updating biodata
+                    val updatedUser = currentUser.copy(
+                        age = age.toIntOrNull() ?: currentUser.age,
+                        weight = weight.toFloatOrNull() ?: currentUser.weight,
+                        height = height.toFloatOrNull() ?: currentUser.height,
+                        gender = gender,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    userRepository.updateUser(updatedUser)
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+}
+
+sealed class PasswordChangeResult {
+    object Success : PasswordChangeResult()
+    data class Error(val message: String) : PasswordChangeResult()
 }
 
 class UserViewModelFactory(

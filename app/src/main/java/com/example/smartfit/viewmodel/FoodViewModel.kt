@@ -264,6 +264,13 @@ class FoodViewModel(
     }
     
     /**
+     * Get calories for a specific date
+     */
+    suspend fun getCaloriesForDate(date: Long): Int {
+        return foodIntakeRepository.getCaloriesForDate(date)
+    }
+    
+    /**
      * Clear search results
      */
     fun clearSearch() {

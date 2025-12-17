@@ -85,6 +85,14 @@ class UserRepository(context: Context) {
         return userDao.getUser(userId)
     }
     
+    /**
+     * Update user profile directly with User object
+     * Preserves all fields including avatar data
+     */
+    suspend fun updateUser(user: User) {
+        userDao.insertOrUpdateUser(user)
+    }
+    
     // ========== Authentication Methods (Multi-User) ==========
     
     /**
@@ -167,5 +175,56 @@ class UserRepository(context: Context) {
      */
     suspend fun isRegistered(): Boolean {
         return credentialsDao.getUserCount() > 0
+    }
+    
+    // ========== Password Management ==========
+    
+    /**
+     * Validate current password
+     */
+    suspend fun validatePassword(password: String): Boolean {
+        val userId = userPreferences.currentUserIdFlow.map { it }.first() ?: return false
+        val credentials = credentialsDao.getCredentialsById(userId) ?: return false
+        return credentials.passwordHash == hashPassword(password)
+    }
+    
+    /**
+     * Update password after validating old password
+     * Returns true on success, false if old password is incorrect
+     */
+    suspend fun updatePassword(oldPassword: String, newPassword: String): Boolean {
+        val userId = userPreferences.currentUserIdFlow.map { it }.first() ?: return false
+        val credentials = credentialsDao.getCredentialsById(userId) ?: return false
+        
+        // Validate old password
+        if (credentials.passwordHash != hashPassword(oldPassword)) {
+            return false
+        }
+        
+        // Update to new password
+        credentialsDao.updatePassword(userId, hashPassword(newPassword))
+        return true
+    }
+    
+    // ========== Avatar Management ==========
+    
+    /**
+     * Update user avatar
+     * @param avatarType "preset" or "custom"
+     * @param avatarId Index for preset avatars (0-4)
+     * @param customPath File path for custom uploaded image (null for preset)
+     */
+    suspend fun updateAvatar(avatarType: String, avatarId: Int, customPath: String?) {
+        val userId = userPreferences.currentUserIdFlow.map { it }.first() ?: return
+        val existingUser = userDao.getUser(userId) ?: return
+        
+        val updatedUser = existingUser.copy(
+            avatarType = avatarType,
+            avatarId = avatarId,
+            customAvatarPath = customPath,
+            updatedAt = System.currentTimeMillis()
+        )
+        
+        userDao.insertOrUpdateUser(updatedUser)
     }
 }

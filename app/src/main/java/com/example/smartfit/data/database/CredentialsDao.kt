@@ -43,4 +43,11 @@ interface CredentialsDao {
      */
     @Query("SELECT * FROM user_credentials ORDER BY createdAt DESC")
     fun getAllUsers(): Flow<List<UserCredentials>>
+    
+    /**
+     * Update user password
+     * Used for password change functionality
+     */
+    @Query("UPDATE user_credentials SET passwordHash = :newPasswordHash WHERE id = :userId")
+    suspend fun updatePassword(userId: Int, newPasswordHash: String)
 }

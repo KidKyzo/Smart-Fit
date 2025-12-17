@@ -41,6 +41,15 @@ class FoodIntakeRepository(
     }
     
     /**
+     * Get total calories for a specific date
+     */
+    suspend fun getCaloriesForDate(date: Long): Int {
+        val userId = userRepository.currentUserId.first() ?: return 0
+        val (startOfDay, endOfDay) = getDayBounds(date)
+        return foodIntakeDao.getTotalCaloriesForDay(userId, startOfDay, endOfDay) ?: 0
+    }
+    
+    /**
      * Log food intake for current user
      * Automatically sets userId from currentUserId
      */
@@ -68,6 +77,24 @@ class FoodIntakeRepository(
      */
     private fun getTodayBounds(): Pair<Long, Long> {
         val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfDay = calendar.timeInMillis
+        
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        val endOfDay = calendar.timeInMillis
+        
+        return Pair(startOfDay, endOfDay)
+    }
+    
+    /**
+     * Get start and end of a specific day in milliseconds
+     */
+    private fun getDayBounds(date: Long): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)

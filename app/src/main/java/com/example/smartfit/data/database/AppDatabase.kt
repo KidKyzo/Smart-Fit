@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ActivityLog::class, User::class, UserCredentials::class, FoodIntakeLog::class],
-    version = 6, // Added FoodIntakeLog for calorie intake tracking
+    version = 7, // Added avatar fields to User entity
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -47,6 +47,16 @@ abstract class AppDatabase : RoomDatabase() {
                 // No changes needed, just version increment to fix schema mismatch
             }
         }
+        
+        // Migration from version 6 to 7: Add avatar fields to user_profile
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add avatar fields to user_profile table
+                database.execSQL("ALTER TABLE user_profile ADD COLUMN avatarType TEXT NOT NULL DEFAULT 'preset'")
+                database.execSQL("ALTER TABLE user_profile ADD COLUMN avatarId INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE user_profile ADD COLUMN customAvatarPath TEXT")
+            }
+        }
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -55,6 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "smartfit_database"
                 )
+                    .addMigrations(MIGRATION_6_7)
                     .fallbackToDestructiveMigration() // Recreate DB on version mismatch (dev mode)
                     .build()
                 INSTANCE = instance
