@@ -3,7 +3,6 @@ package com.example.smartfit.screens.profile.components
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CropSquare
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -327,7 +325,7 @@ fun ImageCropDialog(
 private fun getFileSize(context: Context, uri: Uri): Long {
     return try {
         context.contentResolver.openInputStream(uri)?.use { it.available().toLong() } ?: 0L
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         0L
     }
 }
@@ -352,7 +350,7 @@ private fun loadAndResizeBitmap(context: Context, uri: Uri, maxSize: Int): Bitma
                 }
             } else null
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -372,7 +370,7 @@ private fun saveCroppedImage(context: Context, bitmap: Bitmap): String? {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
         }
         file.absolutePath
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }

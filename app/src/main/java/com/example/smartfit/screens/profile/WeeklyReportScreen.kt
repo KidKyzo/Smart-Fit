@@ -127,7 +127,7 @@ fun WeeklyReportScreen(
                         SummaryCard(
                             modifier = Modifier.weight(1f),
                             title = "Distance",
-                            value = String.format("%.1f km", totalDistance),
+                            value = String.format(java.util.Locale.US, "%.1f km", totalDistance),
                             color = Color(0xFF4CAF50)
                         )
                         SummaryCard(

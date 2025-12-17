@@ -12,6 +12,7 @@ import java.util.Calendar
  * Repository for Food Intake tracking
  * Handles database operations for consumed foods with multi-user support
  */
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class FoodIntakeRepository(
     private val foodIntakeDao: FoodIntakeDao,
     private val userRepository: UserRepository

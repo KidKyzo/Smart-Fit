@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class UserRepository(context: Context) {
     
     private val userPreferences = UserPreferences(context)

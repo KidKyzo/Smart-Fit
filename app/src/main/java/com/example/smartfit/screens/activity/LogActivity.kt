@@ -31,6 +31,7 @@ fun LogActivity(
 ) {
     val activities by viewModel.activities.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    @Suppress("UNUSED_VARIABLE")
     val lastAddedActivity by viewModel.lastAddedActivity.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
 

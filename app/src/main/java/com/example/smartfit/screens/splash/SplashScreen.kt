@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartfit.R // Ensure R is imported for drawable resources
 import com.example.smartfit.Routes
+import com.example.smartfit.viewmodel.FoodViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import kotlin.math.sqrt
@@ -28,26 +29,46 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun SplashScreen(navController: NavController, userViewModel: UserViewModel) {
+fun SplashScreen(
+    navController: NavController,
+    userViewModel: UserViewModel,
+    foodViewModel: FoodViewModel? = null
+) {
     var isVisible by remember { mutableStateOf(true) }
+    var isApiLoaded by remember { mutableStateOf(false) }
+    var isMinTimeElapsed by remember { mutableStateOf(false) }
     val exitDuration = 500.milliseconds
-
-    // This side effect runs once when the composable is first displayed
+    
+    // Track API loading status
+    val isSearching by foodViewModel?.isSearching?.collectAsState() ?: remember { mutableStateOf(false) }
+    
+    // Mark API as loaded when search completes
+    LaunchedEffect(isSearching) {
+        if (!isSearching) {
+            isApiLoaded = true
+        }
+    }
+    
+    // Minimum animation time (heartbeat plays during this)
     LaunchedEffect(Unit) {
-        // Total time the splash screen is visible before starting to exit
-        delay(2500)
-        // Trigger the exit animation
-        isVisible = false
+        delay(3500) // Minimum time for smooth animation (extended by 1s)
+        isMinTimeElapsed = true
+    }
+    
+    // Exit only when BOTH conditions are met: API loaded AND minimum time elapsed
+    LaunchedEffect(isApiLoaded, isMinTimeElapsed) {
+        if (isApiLoaded && isMinTimeElapsed) {
+            // Give a small buffer for smooth animation completion
+            delay(300)
+            isVisible = false
+        }
     }
 
     HeartBeatAnimation(
         isVisible = isVisible,
         exitAnimationDuration = exitDuration,
         onStartExitAnimation = {
-            // This lambda is called when the exit animation should begin.
-            // We determine the destination based on the current login state.
             val destination = if (userViewModel.isLoggedIn.value) Routes.home else Routes.login
-            // Navigate to the correct screen and remove the splash screen from history
             navController.navigate(destination) {
                 popUpTo(Routes.splash) { inclusive = true }
             }
@@ -82,7 +103,8 @@ fun HeartBeatAnimation(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val screenHeight = configuration.screenHeightDp
-    val screenDiagonal = sqrt((screenWidth * screenWidth + screenHeight * screenHeight).toFloat())
+    // Add extra padding (1.5x) to ensure the circle covers rounded corners on modern devices
+    val screenDiagonal = sqrt((screenWidth * screenWidth + screenHeight * screenHeight).toFloat()) * 1.5f
 
     val snappyEasing = CubicBezierEasing(0.2f, 0.0f, 0.2f, 1.0f)
     val exitAnimationScale by animateFloatAsState(
@@ -93,6 +115,16 @@ fun HeartBeatAnimation(
         ),
         label = "exitScale"
     )
+    
+    // Fade out animation for the heartbeat content
+    val contentAlpha by animateFloatAsState(
+        targetValue = if (isExitAnimationStarted) 0f else 1f,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        ),
+        label = "contentFade"
+    )
 
     val infiniteTransition = rememberInfiniteTransition(label = "heartbeatTransition")
 
@@ -101,10 +133,12 @@ fun HeartBeatAnimation(
         modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
-        // Show the ripple animation and icon only if the exit animation hasn't started
-        if (isVisible && !isExitAnimationStarted) {
+        // Show the ripple animation and icon with fade-out
+        if (isVisible && contentAlpha > 0f) {
             Box(
-                modifier = Modifier.size(containerSize),
+                modifier = Modifier
+                    .size(containerSize)
+                    .graphicsLayer { alpha = contentAlpha },
                 contentAlignment = Alignment.Center
             ) {
                 // The ripple circles are in the background
