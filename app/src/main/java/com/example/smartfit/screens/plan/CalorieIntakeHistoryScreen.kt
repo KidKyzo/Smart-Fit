@@ -297,7 +297,7 @@ private fun SwipeToDeleteItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(Shapes.md)
                     .background(MaterialTheme.colorScheme.error.copy(alpha = progress * 0.3f)),
                 contentAlignment = Alignment.CenterEnd
             ) {

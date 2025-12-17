@@ -68,7 +68,13 @@ fun SplashScreen(
         isVisible = isVisible,
         exitAnimationDuration = exitDuration,
         onStartExitAnimation = {
-            val destination = if (userViewModel.isLoggedIn.value) Routes.home else Routes.login
+            // Check if user is logged in AND has valid user data
+            val isLoggedIn = userViewModel.isLoggedIn.value
+            val hasUserProfile = userViewModel.userProfile.value != null
+            
+            // Route to home only if logged in AND has profile data
+            // Otherwise, route to login screen
+            val destination = if (isLoggedIn && hasUserProfile) Routes.home else Routes.login
             navController.navigate(destination) {
                 popUpTo(Routes.splash) { inclusive = true }
             }

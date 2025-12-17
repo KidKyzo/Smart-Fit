@@ -17,10 +17,10 @@ fun CompactTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
-        containerColor = MaterialTheme.colorScheme.surface,
-        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        containerColor = MaterialTheme.colorScheme.background,
+        scrolledContainerColor = MaterialTheme.colorScheme.background,
+        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+        titleContentColor = MaterialTheme.colorScheme.onBackground,
         actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 ) {

@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
 import com.example.smartfit.viewmodel.UserViewModel
+import com.example.smartfit.ui.designsystem.Shapes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +103,10 @@ fun BioDataScreen(
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
-                cursorColor = MaterialTheme.colorScheme.primary
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
             )
 
             // Name Field
@@ -110,7 +115,7 @@ fun BioDataScreen(
                 onValueChange = { name = it },
                 label = { Text("Full Name") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true
@@ -135,7 +140,7 @@ fun BioDataScreen(
                         // This creates the dropdown arrow icon
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGenderMenuExpanded)
                     },
-                    shape = RoundedCornerShape(10.dp),
+                    shape = Shapes.md,
                     colors = textFieldColors,
                     // The .menuAnchor() modifier is crucial for positioning the dropdown
                     modifier = Modifier
@@ -174,7 +179,7 @@ fun BioDataScreen(
                 label = { Text("Age") },
                 leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true
@@ -189,7 +194,7 @@ fun BioDataScreen(
                 label = { Text("Height (cm)") },
                 leadingIcon = { Icon(Icons.Default.Height, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true
@@ -204,7 +209,7 @@ fun BioDataScreen(
                 label = { Text("Weight (kg)") },
                 leadingIcon = { Icon(Icons.Default.MonitorWeight, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true

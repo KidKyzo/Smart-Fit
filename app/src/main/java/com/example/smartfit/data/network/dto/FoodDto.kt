@@ -148,22 +148,31 @@ private fun generateFormattedNutritionClaim(foodName: String, brandName: String?
     // Build formatted claim string
     val parts = mutableListOf<String>()
     
+    // Removed "This food is free from" section as per user request
+    /*
     if (freeFrom.isNotEmpty()) {
         val items = freeFrom.take(5).joinToString(" ") { "✓ $it" }
         parts.add("This food is free from:\n$items")
     }
+    */
     
+    // Removed "Contains" section as per user request
+    /*
     if (contains.isNotEmpty()) {
         val items = contains.joinToString(" ") { "✗ $it" }
-        parts.add("This food contains:\n$items")
+        parts.add("Contains:\n$items")
     }
+    */
     
+    // Removed "Not suitable for" section as per user request
+    /*
     if (notSuitableFor.isNotEmpty()) {
         val items = notSuitableFor.joinToString(" ") { "✗ $it" }
-        parts.add("This food is not suitable for $items diets")
+        parts.add("Not suitable for $items diets")
     }
+    */
     
-    return parts.joinToString("\n\n").ifEmpty { "No allergen information available" }
+    return parts.joinToString("\n\n").ifEmpty { "" }
 }
 
 private fun extractValue(text: String, label: String, unit: String): String {

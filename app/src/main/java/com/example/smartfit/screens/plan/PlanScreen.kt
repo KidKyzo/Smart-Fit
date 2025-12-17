@@ -26,9 +26,13 @@ fun PlanScreen(
     foodViewModel: FoodViewModel,
     exerciseViewModel: ExerciseViewModel
 ) {
+    // We don't need to observe list states here anymore as we just navigate to the list screens
+    // val activities by activityViewModel.activities.collectAsState() // Kept for Activity Log
     val activities by activityViewModel.activities.collectAsState()
-    val exercises by exerciseViewModel.exercises.collectAsState()
-    val isLoading by exerciseViewModel.isLoading.collectAsState()
+    
+    // Removed unused state observations for exercises and foods since we just link to them now
+    // val exercises by exerciseViewModel.exercises.collectAsState()
+    // val isLoading by exerciseViewModel.isLoading.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -57,16 +61,10 @@ fun PlanScreen(
             contentPadding = PaddingValues(vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // 1. Exercise API Section (Now using the component)
+            // 1. Exercise API Section (Now using the new gradient box component)
             item {
                 ExerciseSection(
-                    exercises = exercises,
-                    isLoading = isLoading,
-                    onExerciseClick = { exercise ->
-                        exerciseViewModel.selectExercise(exercise)
-                        navController.navigate(Routes.workoutDetail)
-                    },
-                    onViewMoreClick = {
+                    onNavigateToList = {
                         navController.navigate(Routes.workoutList)
                     }
                 )
@@ -75,12 +73,8 @@ fun PlanScreen(
             // 2. Calorie Intake Section
             item {
                 CalorieIntakeSection(
-                    foodViewModel = foodViewModel,
-                    onFoodClick = { food ->
-                        navController.navigate("food_detail/${food.id}")
-                    },
-                    onViewMoreClick = {
-                        navController.navigate("food_list")
+                    onNavigateToList = {
+                        navController.navigate(Routes.foodList)
                     }
                 )
             }

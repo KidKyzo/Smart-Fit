@@ -140,13 +140,22 @@ object AppTypography {
     )
 }
 
-// Shape System
+// Shape System - Granular corner radius categories
 object Shapes {
-    val small = RoundedCornerShape(8.dp)
-    val medium = RoundedCornerShape(12.dp)
-    val large = RoundedCornerShape(16.dp)
-    val xLarge = RoundedCornerShape(20.dp)
-    val circle = RoundedCornerShape(50)
+    // Primary named sizes
+    val xs = RoundedCornerShape(4.dp)       // Extra small - subtle rounding
+    val sm = RoundedCornerShape(8.dp)       // Small - text fields, small cards
+    val md = RoundedCornerShape(12.dp)      // Medium - standard cards, buttons
+    val lg = RoundedCornerShape(16.dp)      // Large - prominent cards
+    val xl = RoundedCornerShape(20.dp)      // Extra large - featured elements
+    val xxl = RoundedCornerShape(24.dp)     // 2x Extra large - hero cards
+    val circle = RoundedCornerShape(50)     // Circle/pill shape
+    
+    // Backward compatibility aliases
+    val small = sm
+    val medium = md
+    val large = lg
+    val xLarge = xl
 }
 
 // Animation Durations

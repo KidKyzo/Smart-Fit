@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.dp
 import com.example.smartfit.ui.designsystem.Alpha
 import com.example.smartfit.ui.designsystem.AppTypography
 import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.ui.theme.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 
 @Composable
 fun BMIIndicator(
@@ -78,36 +82,37 @@ fun BMIIndicator(
                 .fillMaxWidth()
                 .height(24.dp)
         ) {
-            // Background segments
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val segmentWidth = size.width / 3
-                
-                // Underweight (Yellow) - Left
-                drawRoundRect(
-                    color = Color(0xFFFFC107).copy(alpha = 0.3f),
-                    topLeft = Offset(0f, 0f),
-                    size = Size(segmentWidth, size.height),
-                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+            // Background segments - now fills full height
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp) // Match parent Box height
+                    .align(Alignment.Center),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(0.25f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
+                        .background(WarningLight.copy(alpha = 0.3f))
                 )
-                
-                // Normal (Green) - Middle
-                drawRoundRect(
-                    color = Color(0xFF4CAF50).copy(alpha = 0.3f),
-                    topLeft = Offset(segmentWidth, 0f),
-                    size = Size(segmentWidth, size.height),
-                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                Box(
+                    modifier = Modifier
+                        .weight(0.5f)
+                        .fillMaxHeight()
+                        .background(SuccessLight.copy(alpha = 0.3f))
                 )
-                
-                // Overweight (Red) - Right
-                drawRoundRect(
-                    color = Color(0xFFF44336).copy(alpha = 0.3f),
-                    topLeft = Offset(segmentWidth * 2, 0f),
-                    size = Size(segmentWidth, size.height),
-                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                Box(
+                    modifier = Modifier
+                        .weight(0.25f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
                 )
             }
             
-            // Indicator marker
+            // Indicator marker - now properly aligned
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val markerPosition = size.width * animatedProgress.value
                 val markerWidth = 8.dp.toPx()
@@ -147,11 +152,12 @@ fun BMIIndicator(
     }
 }
 
+@Composable
 private fun getBMICategory(bmi: Float): Pair<String, Color> {
     return when {
-        bmi < 18.5 -> Pair("Underweight", Color(0xFFFFC107)) // Yellow
-        bmi < 25.0 -> Pair("Normal", Color(0xFF4CAF50)) // Green
-        else -> Pair("Overweight", Color(0xFFF44336)) // Red
+        bmi < 18.5 -> Pair("Underweight", Color(0xFFFFC107)) // Bright Yellow
+        bmi < 25.0 -> Pair("Normal", Color(0xFF4CAF50)) // Bright Green
+        else -> Pair("Overweight", Color(0xFFF44336)) // Bright Red
     }
 }
 

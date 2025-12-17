@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -21,6 +22,7 @@ import androidx.navigation.NavController
 import com.airbnb.lottie.compose.*
 import com.example.smartfit.R
 import com.example.smartfit.Routes
+import com.example.smartfit.ui.designsystem.Shapes
 import com.example.smartfit.viewmodel.UserViewModel
 
 @Composable
@@ -90,7 +92,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             focusedTextColor = MaterialTheme.colorScheme.onSurface,
             unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             focusedLabelColor = MaterialTheme.colorScheme.primary,
-            cursorColor = MaterialTheme.colorScheme.primary
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
         )
 
         TextField(
@@ -101,7 +106,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
             },
             label = { Text(text = "Username or Email") },
             leadingIcon = { Icon(imageVector = Icons.Default.Person4, contentDescription = "Username or Email") },
-            shape = RoundedCornerShape(10.dp),
+            shape = Shapes.md,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
@@ -128,7 +133,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
                     modifier = Modifier.clickable { passwordVisible = !passwordVisible }
                 )
             },
-            shape = RoundedCornerShape(10.dp),
+            shape = Shapes.md,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 15.dp),
@@ -155,16 +160,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, use
                 .height(50.dp)
                 .padding(horizontal = 15.dp),
             onClick = {
-                // DEBUG MODE: Empty inputs bypass validation
-                if (usernameOrEmail.isEmpty() && password.isEmpty()) {
-                    userViewModel.login()
-                    userViewModel.initializeDefaultProfile()
-                } else {
-                    // Normal login with validation
-                    userViewModel.validateAndLogin(usernameOrEmail, password)
-                }
+                // Validate and login with proper credentials
+                userViewModel.validateAndLogin(usernameOrEmail, password)
             },
-            enabled = !isAuthenticating
+            enabled = !isAuthenticating && usernameOrEmail.isNotEmpty() && password.isNotEmpty()
         ) {
             if (isAuthenticating) {
                 CircularProgressIndicator(

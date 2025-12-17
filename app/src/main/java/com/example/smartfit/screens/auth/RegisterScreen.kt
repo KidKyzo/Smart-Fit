@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
+import com.example.smartfit.ui.designsystem.Shapes
 
 // Validation functions
 private fun isValidEmail(email: String): Boolean {
@@ -110,7 +112,11 @@ fun RegisterScreen(navController: NavController) {
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                 cursorColor = MaterialTheme.colorScheme.primary,
-                errorContainerColor = MaterialTheme.colorScheme.surface
+                errorContainerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
             )
 
             // Username Field
@@ -122,7 +128,7 @@ fun RegisterScreen(navController: NavController) {
                 },
                 label = { Text("Username") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true,
@@ -141,7 +147,7 @@ fun RegisterScreen(navController: NavController) {
                 },
                 label = { Text("Email") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true,
@@ -173,7 +179,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true,
@@ -202,7 +208,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                 },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                shape = RoundedCornerShape(10.dp),
+                shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
                 singleLine = true,

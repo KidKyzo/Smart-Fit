@@ -131,7 +131,13 @@ fun SettingScreen(
                         }
                         Switch(
                             checked = isChecked,
-                            onCheckedChange = { themeViewModel.toggleTheme(it) }
+                            onCheckedChange = { themeViewModel.toggleTheme(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         )
                     }
                 }

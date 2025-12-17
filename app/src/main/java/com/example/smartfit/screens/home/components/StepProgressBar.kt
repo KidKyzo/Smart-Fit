@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.smartfit.ui.designsystem.Alpha
 import com.example.smartfit.ui.designsystem.AppTypography
 import com.example.smartfit.ui.designsystem.Spacing
+import com.example.smartfit.ui.theme.SuccessLight
 
 @Composable
 fun StepProgressBar(
@@ -83,7 +84,7 @@ fun StepProgressBar(
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawRoundRect(
-                        color = Color(0xFF4CAF50), // Green color for progress
+                        color = SuccessLight, // Green color for progress
                         size = Size(size.width, size.height),
                         cornerRadius = CornerRadius(10.dp.toPx(), 10.dp.toPx())
                     )

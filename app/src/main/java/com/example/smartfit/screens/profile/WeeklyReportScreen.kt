@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartfit.data.database.ActivityLog
 import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.ui.designsystem.Shapes
+import com.example.smartfit.ui.theme.*
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.FoodViewModel
 import java.text.SimpleDateFormat
@@ -110,13 +112,13 @@ fun WeeklyReportScreen(
                             modifier = Modifier.weight(1f),
                             title = "Duration",
                             value = "$totalDuration min",
-                            color = Color(0xFF2196F3)
+                            color = InfoLight
                         )
                         SummaryCard(
                             modifier = Modifier.weight(1f),
                             title = "Burned",
                             value = "$totalCalories kcal",
-                            color = Color(0xFFFF5722)
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                     // Second Row
@@ -128,13 +130,13 @@ fun WeeklyReportScreen(
                             modifier = Modifier.weight(1f),
                             title = "Distance",
                             value = String.format(java.util.Locale.US, "%.1f km", totalDistance),
-                            color = Color(0xFF4CAF50)
+                            color = SuccessLight
                         )
                         SummaryCard(
                             modifier = Modifier.weight(1f),
                             title = "Intake",
                             value = "$calorieIntake kcal",
-                            color = Color(0xFF9C27B0)
+                            color = ActivityJogging
                         )
                     }
                 }
@@ -325,7 +327,7 @@ fun SummaryCard(
 ) {
     Card(
         modifier = modifier.height(90.dp), // Fixed height
-        shape = RoundedCornerShape(12.dp),
+        shape = Shapes.md,
         colors = CardDefaults.cardColors(
             containerColor = color.copy(alpha = 0.1f)
         )
@@ -361,10 +363,10 @@ fun SummaryCard(
 fun ActivityBarGraph(activities: List<ActivityLog>) {
     val maxDuration = activities.maxOfOrNull { it.duration } ?: 1
     val activityColors = mapOf(
-        "Running" to Color(0xFFE91E63),
-        "Jogging" to Color(0xFF9C27B0),
-        "Cycling" to Color(0xFF2196F3),
-        "Hiking" to Color(0xFF4CAF50)
+        "Running" to ActivityRunning,
+        "Jogging" to ActivityJogging,
+        "Cycling" to ActivityCycling,
+        "Hiking" to ActivityHiking
     )
     
     Column(

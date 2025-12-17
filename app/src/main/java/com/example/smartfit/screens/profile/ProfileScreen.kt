@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -33,10 +34,14 @@ import com.example.smartfit.Routes
 import com.example.smartfit.screens.profile.components.AvatarSelector
 import com.example.smartfit.screens.profile.components.BMIIndicator
 import com.example.smartfit.ui.designsystem.*
+import com.example.smartfit.ui.designsystem.Shapes
+import com.example.smartfit.ui.theme.*
 import com.example.smartfit.utils.ValidationUtils
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 // Preset avatar resource IDs
 val presetAvatars = listOf(
@@ -217,6 +222,9 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .clickable { showEditPersonalInfoDialog = true },
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.small),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
                     shape = Shapes.medium
                 ) {
                     Column(modifier = Modifier.padding(Spacing.md)) {
@@ -249,7 +257,34 @@ fun ProfileScreen(
                         .clickable { navController.navigate("weekly_report/0") },
                     elevation = 1
                 ) {
-                    SectionHeader(title = "Weekly Report")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Weekly Report",
+                            style = AppTypography.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(
+                            onClick = { navController.navigate("weekly_report/0") },
+                            contentPadding = PaddingValues(horizontal = Spacing.xs)
+                        ) {
+                            Text(
+                                text = "View detail",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = AppTypography.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Icon(
+                                imageVector =  Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "View detail",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Row(
@@ -262,9 +297,9 @@ fun ProfileScreen(
                             value = "$currentWeekDuration min",
                             comparisonValue = if (durationDiff >= 0)
                                 "+$durationDiff min" else "$durationDiff min",
-                            comparisonColor = if (durationDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            comparisonColor = if (durationDiff >= 0) SuccessLight else MaterialTheme.colorScheme.error,
                             icon = Icons.Default.FitnessCenter,
-                            iconTint = Color(0xFF2196F3),
+                            iconTint = InfoLight,
                             onClick = { navController.navigate("weekly_report/0") }
                         )
 
@@ -273,9 +308,9 @@ fun ProfileScreen(
                             title = "Avg Daily Steps",
                             value = "$currentWeekSteps",
                             comparisonValue = if (stepsDiff >= 0) "+$stepsDiff" else "$stepsDiff",
-                            comparisonColor = if (stepsDiff >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            comparisonColor = if (stepsDiff >= 0) SuccessLight else MaterialTheme.colorScheme.error,
                             icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                            iconTint = Color(0xFF4CAF50),
+                            iconTint = SuccessLight,
                             onClick = { navController.navigate("weekly_report/0") }
                         )
                     }
@@ -360,7 +395,6 @@ fun ProfileScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
             title = { Text("Confirm Logout") },
             text = { Text("Are you sure you want to log out?") },
             confirmButton = {
@@ -407,7 +441,8 @@ private fun NavigationBox(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Spacing.lg),
+                // Reduced padding to make the box height smaller
+                .padding(Spacing.md),
             horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -443,7 +478,7 @@ fun ReportCard(
             enabled = onClick != null,
             onClick = onClick ?: {}
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = Shapes.lg,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         )

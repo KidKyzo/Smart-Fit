@@ -266,7 +266,7 @@ private fun SwipeToDeleteActivityItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(Shapes.md)
                     .background(MaterialTheme.colorScheme.error.copy(alpha = progress * 0.3f)),
                 contentAlignment = Alignment.CenterEnd
             ) {
@@ -336,7 +336,7 @@ fun ActivityCard(
                 StatItem(
                     icon = Icons.Default.LocalFireDepartment,
                     value = "${activity.calories} kcal",
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 StatItem(
                     icon = Icons.Default.Map,

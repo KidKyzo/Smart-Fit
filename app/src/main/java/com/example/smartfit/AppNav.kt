@@ -206,9 +206,9 @@ fun BottomNavigationBar(
     )
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        tonalElevation = 3.dp
+        tonalElevation = 0.dp
     ) {
         items.forEach { item ->
             NavigationBarItem(
