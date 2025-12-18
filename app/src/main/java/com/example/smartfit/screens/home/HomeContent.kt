@@ -50,6 +50,7 @@ import com.example.smartfit.ui.designsystem.SectionHeader
 import com.example.smartfit.ui.designsystem.Sizing
 import com.example.smartfit.ui.designsystem.Spacing
 import com.example.smartfit.ui.designsystem.StatCard
+import com.example.smartfit.ui.theme.md_theme_light_primary
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import com.example.smartfit.viewmodel.FoodViewModel
@@ -212,7 +213,7 @@ fun PhoneHomeLayout(
                             title = "Calorie Intake",
                             value = "$calorieIntake kcal",
                             icon = Icons.Default.Restaurant,
-                            iconColor = MaterialTheme.colorScheme.tertiary,
+                            iconColor = md_theme_light_primary,
                             modifier = Modifier.weight(1f),
                             onClick = { navController.navigate("calorie_intake_history") }
                         )
@@ -303,7 +304,7 @@ fun TabletHomeLayout(
                             title = "Calorie Intake",
                             value = "$calorieIntake kcal",
                             icon = Icons.Default.Restaurant,
-                            iconColor = MaterialTheme.colorScheme.tertiary,
+                            iconColor = md_theme_light_primary,
                             modifier = Modifier.weight(1f)
                         )
                     }

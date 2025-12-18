@@ -118,7 +118,7 @@ fun SettingScreen(
                             )
                             Column {
                                 Text(
-                                    text = "Dark Mode",
+                                    text = if (isChecked) "Dark Mode" else "Light Mode",
                                     style = AppTypography.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium
                                 )

@@ -18,11 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
 import com.example.smartfit.data.datastore.UserPreferences
 import com.example.smartfit.ui.theme.SmartFitTheme
 import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.ThemeViewModelFactory
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

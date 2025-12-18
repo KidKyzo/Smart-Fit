@@ -92,7 +92,7 @@ fun BMIIndicator(
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(0.25f)
+                        .weight(0.4f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
                         .background(WarningLight.copy(alpha = 0.3f))
@@ -105,7 +105,7 @@ fun BMIIndicator(
                 )
                 Box(
                     modifier = Modifier
-                        .weight(0.25f)
+                        .weight(0.4f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
                         .background(MaterialTheme.colorScheme.error.copy(alpha = 0.3f))

@@ -116,7 +116,7 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         ) {
             // ... (Other Auth/Home Routes remain the same) ...
 
-            composable(Routes.splash) { SplashScreen(navController, userViewModel, foodViewModel) }
+            composable(Routes.splash) { SplashScreen(navController, userViewModel) }
             composable(Routes.login) { LoginScreen(Modifier, navController, userViewModel) }
             composable(Routes.register) { RegisterScreen(navController) }
             composable(Routes.biodata) { BioDataScreen(navController, userViewModel) }

@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
     implementation("androidx.compose.material:material-icons-extended:1.7.0-beta01") // Or your current version
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 //viewmodel dependency
     implementation(libs.androidx.lifecycle.viewmodel.compose)

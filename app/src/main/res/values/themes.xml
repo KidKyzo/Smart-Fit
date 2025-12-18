@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- 1. Tema Utama Aplikasi Anda (yang sudah ada) -->
+    <!-- Parent bisa berbeda, misalnya Theme.Material3.DayNight.NoActionBar -->
     <style name="Theme.SmartFit" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- 2. Tema BARU untuk Splash Screen Sistem (Android 12+) -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Latar belakang yang ditampilkan saat splash screen sistem muncul -->
+        <!-- Ganti dengan warna background utama aplikasi Anda, misal dari Color.kt -->
+        <item name="windowSplashScreenBackground">#F9F9F0</item>
+
+        <!-- Ikon yang ditampilkan di tengah splash screen -->
+        <!-- Ini harus menunjuk ke ikon launcher Anda -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+
+        <!-- Durasi ikon tampil di layar (opsional, dalam milidetik) -->
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+
+        <!-- Tema yang akan diterapkan setelah splash screen selesai -->
+        <item name="postSplashScreenTheme">@style/Theme.SmartFit</item>
+    </style>
 </resources>

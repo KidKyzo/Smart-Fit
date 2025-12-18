@@ -1,9 +1,11 @@
 package com.example.smartfit.screens.plan.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import com.example.smartfit.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,6 +14,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.smartfit.ui.designsystem.*
@@ -47,15 +52,16 @@ fun ExerciseSection(
                 .clickable { onNavigateToList() }
                 .padding(Spacing.lg)
         ) {
-             // Title
+            // Title
              Text(
-                 text = "workout suggestion\nList",
+                 text = "Workout Suggestion\nList",
                  style = AppTypography.typography.headlineSmall.copy(
                      fontWeight = FontWeight.Bold,
                      color = MaterialTheme.colorScheme.onSurface
                  ),
-                 modifier = Modifier.align(Alignment.TopStart)
+                 modifier = Modifier.align(Alignment.BottomStart)
              )
+
         }
     }
 }

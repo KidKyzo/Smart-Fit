@@ -297,9 +297,9 @@ fun ProfileScreen(
                             value = "$currentWeekDuration min",
                             comparisonValue = if (durationDiff >= 0)
                                 "+$durationDiff min" else "$durationDiff min",
-                            comparisonColor = if (durationDiff >= 0) SuccessLight else MaterialTheme.colorScheme.error,
+                            comparisonColor = if (durationDiff >= 0) md_theme_light_primary else MaterialTheme.colorScheme.error,
                             icon = Icons.Default.FitnessCenter,
-                            iconTint = InfoLight,
+                            iconTint = md_theme_light_primary,
                             onClick = { navController.navigate("weekly_report/0") }
                         )
 
@@ -308,9 +308,9 @@ fun ProfileScreen(
                             title = "Avg Daily Steps",
                             value = "$currentWeekSteps",
                             comparisonValue = if (stepsDiff >= 0) "+$stepsDiff" else "$stepsDiff",
-                            comparisonColor = if (stepsDiff >= 0) SuccessLight else MaterialTheme.colorScheme.error,
+                            comparisonColor = if (stepsDiff >= 0) md_theme_light_primary else MaterialTheme.colorScheme.error,
                             icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                            iconTint = SuccessLight,
+                            iconTint = md_theme_light_primary,
                             onClick = { navController.navigate("weekly_report/0") }
                         )
                     }
@@ -319,7 +319,7 @@ fun ProfileScreen(
 
             item {
                 // Add spacing before navigation boxes
-                Spacer(modifier = Modifier.height(Spacing.lg))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 
                 // Settings Box - Full width, separate row
                 NavigationBox(
