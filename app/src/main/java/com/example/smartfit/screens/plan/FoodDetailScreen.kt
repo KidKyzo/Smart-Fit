@@ -54,8 +54,13 @@ fun FoodDetailScreen(
     }
     
     val servingOptions = food.servingOptions
-    val selectedServing = servingOptions[selectedServingIndex]
-    val nutrition = food.calculateNutrition(selectedServing.grams)
+    
+    // Recalculate nutrition when serving size changes
+    val selectedServing = servingOptions.getOrElse(selectedServingIndex) { servingOptions.first() }
+    val nutrition = remember(selectedServingIndex, food.id) {
+        val serving = servingOptions.getOrElse(selectedServingIndex) { servingOptions.first() }
+        food.calculateNutrition(serving.grams)
+    }
     
     AppScaffold(
         topBar = {
@@ -189,7 +194,7 @@ fun FoodDetailScreen(
                             fontWeight = FontWeight.Bold
                         )
                         
-                        Divider(modifier = Modifier.padding(vertical = Spacing.xs))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.xs))
                         
                         NutritionRow("Calories", "${nutrition.calories} kcal")
                         NutritionRow("Protein", "${String.format("%.1f", nutrition.protein)}g")

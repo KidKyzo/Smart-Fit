@@ -25,12 +25,12 @@ class FoodRepository(
             val response = api.searchFoods(query = query, pageNumber = page)
             Log.d("FoodRepository", "API Response: $response")
             
-            val foods = response.foods?.food?.mapNotNull { 
+            val foods = response.foods?.food?.map { 
                 Log.d("FoodRepository", "Food DTO: $it")
-                it.toFoodData()  // Returns null if not from Malaysia/Indonesia
+                it.toFoodData()  // Convert all foods to domain model
             } ?: emptyList()
             
-            Log.d("FoodRepository", "Converted ${foods.size} Malaysian/Indonesian foods")
+            Log.d("FoodRepository", "Converted ${foods.size} foods")
             Result.success(foods)
         } catch (e: Exception) {
             Log.e("FoodRepository", "Error searching foods", e)
