@@ -22,7 +22,7 @@ class UserViewModelTest {
      * This verifies the core authentication logic.
      */
     @Test
-    fun `password hashing is consistent`() {
+    fun passwordHashingIsConsistent() {
         // Arrange
         val password = "testPassword123"
         
@@ -38,7 +38,7 @@ class UserViewModelTest {
      * Test that different passwords produce different hashes.
      */
     @Test
-    fun `different passwords produce different hashes`() {
+    fun differentPasswordsProduceDifferentHashes() {
         // Arrange
         val password1 = "password123"
         val password2 = "password456"
@@ -55,7 +55,7 @@ class UserViewModelTest {
      * Test that password hash has correct length (SHA-256 produces 64 hex characters).
      */
     @Test
-    fun `password hash has correct length`() {
+    fun passwordHashHasCorrectLength() {
         // Arrange
         val password = "anyPassword"
         
@@ -73,7 +73,7 @@ class UserViewModelTest {
      * Formula: weight(kg) / height(m)²
      */
     @Test
-    fun `BMI calculation is correct for normal values`() {
+    fun bmiCalculationIsCorrectForNormalValues() {
         // Arrange
         val weight = 70f  // kg
         val height = 175f // cm
@@ -89,7 +89,7 @@ class UserViewModelTest {
      * Test BMI calculation with underweight values.
      */
     @Test
-    fun `BMI calculation is correct for underweight`() {
+    fun bmiCalculationIsCorrectForUnderweightValues() {
         // Arrange
         val weight = 50f  // kg
         val height = 175f // cm
@@ -105,7 +105,7 @@ class UserViewModelTest {
      * Test BMI calculation with obese values.
      */
     @Test
-    fun `BMI calculation is correct for obese`() {
+    fun bmiCalculationIsCorrectForObeseValues() {
         // Arrange
         val weight = 100f // kg
         val height = 170f // cm
@@ -123,7 +123,7 @@ class UserViewModelTest {
      * Test step goal progress calculation at 50%.
      */
     @Test
-    fun `step goal progress is correct at 50 percent`() {
+    fun stepGoalProgressIsCorrectAt50Percent() {
         // Arrange
         val currentSteps = 5000
         val goalSteps = 10000
@@ -139,7 +139,7 @@ class UserViewModelTest {
      * Test step goal progress calculation at 100%.
      */
     @Test
-    fun `step goal progress is correct at 100 percent`() {
+    fun stepGoalProgressIsCorrectAt100Percent() {
         // Arrange
         val currentSteps = 10000
         val goalSteps = 10000
@@ -155,7 +155,7 @@ class UserViewModelTest {
      * Test step goal progress calculation exceeding goal.
      */
     @Test
-    fun `step goal progress caps at 100 percent when exceeded`() {
+    fun stepGoalProgressCapsAt100PercentWhenExceeded() {
         // Arrange
         val currentSteps = 15000
         val goalSteps = 10000
@@ -171,7 +171,7 @@ class UserViewModelTest {
      * Test step goal progress with zero steps.
      */
     @Test
-    fun `step goal progress is zero when no steps`() {
+    fun stepGoalProgressIsZeroWhenNoSteps() {
         // Arrange
         val currentSteps = 0
         val goalSteps = 10000
