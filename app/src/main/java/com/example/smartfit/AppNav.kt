@@ -52,14 +52,10 @@ fun AppNav(themeViewModel: ThemeViewModel) {
     val context = navController.context
     val application = context.applicationContext as Application
 
-    // 1. Initialize Database & Repositories
     val database = AppDatabase.getDatabase(context)
     val activityRepository = ActivityRepository(database.activityDao())
     val userRepository = UserRepository(context)
 
-    // --------------------------------------------
-
-    // 2. Initialize ViewModels
     val activityViewModel: ActivityViewModel = viewModel(
         factory = ActivityViewModelFactory(application, activityRepository, userRepository)
     )
@@ -70,19 +66,14 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         factory = FoodViewModelFactory(application)
     )
 
-    // --- NEW: Initialize Workout ViewModel ---
     val exerciseApi = NetworkModule.provideExerciseDbApi()
     val exerciseRepository = ExerciseRepository(exerciseApi)
     val exerciseViewModel: ExerciseViewModel = viewModel(
         factory = ExerciseViewModelFactory(exerciseRepository)
     )
 
-    // -----------------------------------------
-
-    // Observe login state
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
 
-    // Automatic Navigation Logic (Auth Guard)
     LaunchedEffect(isLoggedIn, navController) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         if (!isLoggedIn && currentRoute != Routes.login && currentRoute != Routes.splash) {
@@ -92,7 +83,6 @@ fun AppNav(themeViewModel: ThemeViewModel) {
         }
     }
 
-    // Bottom Bar Logic
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in listOf(Routes.home, Routes.plan, Routes.profile)
@@ -114,11 +104,9 @@ fun AppNav(themeViewModel: ThemeViewModel) {
             startDestination = Routes.splash,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // ... (Other Auth/Home Routes remain the same) ...
-
             composable(Routes.splash) { SplashScreen(navController, userViewModel) }
             composable(Routes.login) { LoginScreen(Modifier, navController, userViewModel) }
-            composable(Routes.register) { RegisterScreen(navController) }
+            composable(Routes.register) { RegisterScreen(navController, userViewModel) }
             composable(Routes.biodata) { BioDataScreen(navController, userViewModel) }
 
             composable(Routes.home) {
@@ -138,8 +126,6 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 ProfileScreen(navController, themeViewModel, userViewModel, activityViewModel)
             }
 
-            // ... (Log, Setting Routes remain the same) ...
-
             composable(Routes.log) {
                 LogActivity(viewModel = activityViewModel, onBack = { navController.popBackStack() })
             }
@@ -147,24 +133,20 @@ fun AppNav(themeViewModel: ThemeViewModel) {
                 SettingScreen(Modifier, navController, themeViewModel, userViewModel)
             }
 
-            // --- UPDATED: WORKOUT LIST ROUTE ---
             composable(Routes.workoutList) {
                 com.example.smartfit.screens.plan.WorkoutListScreen(
                     navController = navController,
                     viewModel = exerciseViewModel
                 )
             }
-            // -----------------------------------
-
             composable(Routes.foodList) {
                 com.example.smartfit.screens.plan.FoodListScreen(navController, foodViewModel)
             }
 
             composable(Routes.workoutDetail) {
-                // Do NOT try to get arguments here. Just render the screen.
                 com.example.smartfit.screens.plan.WorkoutDetailScreen(
                     navController = navController,
-                    viewModel = exerciseViewModel // Pass the SAME INSTANCE
+                    viewModel = exerciseViewModel
                 )
             }
 

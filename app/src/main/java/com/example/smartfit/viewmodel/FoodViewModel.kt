@@ -28,6 +28,8 @@ class FoodViewModel(
     private val foodIntakeRepository: FoodIntakeRepository
 ) : ViewModel() {
     
+    private val TAG = "DebugSmartApp"
+    
     // Search state
     private val _searchResults = MutableStateFlow<List<FoodData>>(emptyList())
     val searchResults: StateFlow<List<FoodData>> = _searchResults.asStateFlow()
@@ -102,6 +104,7 @@ class FoodViewModel(
             _currentPage.value = 0
             _hasMore.value = true
             
+            Log.d(TAG, "searchFoods() called with query='$query'")
             val result = foodRepository.searchFoods(query, page = 0)
             
             result.onSuccess { foods ->
@@ -124,9 +127,10 @@ class FoodViewModel(
                 // Check if there are more results
                 _hasMore.value = sortedFoods.size > ITEMS_PER_PAGE
                 
-                Log.d("FoodViewModel", "API search successful: ${uniqueFoods.size} unique foods, ${deduplicatedFoods.size} after deduplication, showing ${_searchResults.value.size}")
+                Log.d(TAG, "searchFoods() API response: ${uniqueFoods.size} unique foods, ${deduplicatedFoods.size} after deduplication")
+                Log.d(TAG, "API search successful: ${uniqueFoods.size} unique foods, ${deduplicatedFoods.size} after deduplication, showing ${_searchResults.value.size}")
             }.onFailure { error ->
-                Log.e("FoodViewModel", "API search failed", error)
+                Log.e(TAG, "API search failed", error)
                 _searchError.value = error.message ?: "Failed to search foods"
                 _searchResults.value = emptyList()
                 _hasMore.value = false

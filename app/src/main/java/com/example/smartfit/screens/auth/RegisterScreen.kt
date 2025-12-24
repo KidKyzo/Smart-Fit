@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartfit.Routes
 import com.example.smartfit.ui.designsystem.Shapes
+import com.example.smartfit.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 // Validation functions
 private fun isValidEmail(email: String): Boolean {
@@ -51,7 +53,12 @@ private fun getPasswordError(password: String): String? {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(
+    navController: NavController,
+    userViewModel: UserViewModel
+) {
+    val coroutineScope = rememberCoroutineScope()
+    
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,6 +71,10 @@ fun RegisterScreen(navController: NavController) {
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+    
+    // Duplicate checking states
+    var isCheckingUsername by remember { mutableStateOf(false) }
+    var isCheckingEmail by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -122,12 +133,32 @@ fun RegisterScreen(navController: NavController) {
             // Username Field
             TextField(
                 value = username,
-                onValueChange = { 
-                    username = it
-                    usernameError = if (it.isEmpty()) null else if (it.length < 3) "Username must be at least 3 characters" else null
+                onValueChange = { newValue ->
+                    username = newValue
+                    // Basic validation
+                    if (newValue.isEmpty()) {
+                        usernameError = null
+                    } else if (newValue.length < 3) {
+                        usernameError = "Username must be at least 3 characters"
+                    } else {
+                        // Check for duplicates
+                        coroutineScope.launch {
+                            isCheckingUsername = true
+                            val exists = userViewModel.isUsernameExists(newValue)
+                            if (exists) {
+                                usernameError = "Username '$newValue' is already taken"
+                            } else {
+                                usernameError = null
+                            }
+                            isCheckingUsername = false
+                        }
+                    }
                 },
                 label = { Text("Username") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                trailingIcon = if (isCheckingUsername) {
+                    { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) }
+                } else null,
                 shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,
@@ -141,12 +172,32 @@ fun RegisterScreen(navController: NavController) {
             // Email Field
             TextField(
                 value = email,
-                onValueChange = { 
-                    email = it
-                    emailError = if (it.isEmpty()) null else if (!isValidEmail(it)) "Invalid email format" else null
+                onValueChange = { newValue ->
+                    email = newValue
+                    // Basic validation
+                    if (newValue.isEmpty()) {
+                        emailError = null
+                    } else if (!isValidEmail(newValue)) {
+                        emailError = "Invalid email format"
+                    } else {
+                        // Check for duplicates
+                        coroutineScope.launch {
+                            isCheckingEmail = true
+                            val exists = userViewModel.isEmailExists(newValue)
+                            if (exists) {
+                                emailError = "Email '$newValue' is already registered"
+                            } else {
+                                emailError = null
+                            }
+                            isCheckingEmail = false
+                        }
+                    }
                 },
                 label = { Text("Email") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                trailingIcon = if (isCheckingEmail) {
+                    { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) }
+                } else null,
                 shape = Shapes.md,
                 modifier = Modifier.fillMaxWidth(),
                 colors = textFieldColors,

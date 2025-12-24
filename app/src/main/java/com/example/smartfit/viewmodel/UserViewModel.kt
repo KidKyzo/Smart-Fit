@@ -12,8 +12,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.util.Log
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
+
+    private val TAG = "DebugSmartApp"
 
     // Loading states
     private val _isLoading = MutableStateFlow(false)
@@ -120,6 +123,27 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     val loginError: StateFlow<String?> = _loginError.asStateFlow()
     
     /**
+     * Clear login error
+     */
+    fun clearLoginError() {
+        _loginError.value = null
+    }
+    
+    /**
+     * Check if username already exists
+     */
+    suspend fun isUsernameExists(username: String): Boolean {
+        return userRepository.isUsernameExists(username)
+    }
+    
+    /**
+     * Check if email already exists
+     */
+    suspend fun isEmailExists(email: String): Boolean {
+        return userRepository.isEmailExists(email)
+    }
+    
+    /**
      * Register new user with credentials and profile
      * Uses new multi-user repository method
      */
@@ -134,6 +158,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         gender: String
     ) {
         viewModelScope.launch {
+            Log.d(TAG, "register() called with username=$username, email=$email")
             _isAuthenticating.value = true
             try {
                 val userId = userRepository.register(
@@ -148,11 +173,14 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
                 )
                 
                 if (userId != null) {
+                    Log.d(TAG, "register() success, userId=$userId")
                     _loginError.value = null
                 } else {
+                    Log.d(TAG, "register() failed: duplicate username/email")
                     _loginError.value = "Registration failed: Username or email already exists"
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "register() error: ${e.message}")
                 _loginError.value = "Registration failed: ${e.message}"
             } finally {
                 _isAuthenticating.value = false
@@ -166,27 +194,24 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
      */
     fun validateAndLogin(usernameOrEmail: String, password: String) {
         viewModelScope.launch {
+            Log.d(TAG, "validateAndLogin() called with input=$usernameOrEmail")
             _isAuthenticating.value = true
             try {
                 val success = userRepository.validateAndLogin(usernameOrEmail, password)
                 if (success) {
+                    Log.d(TAG, "validateAndLogin() success")
                     _loginError.value = null
                 } else {
+                    Log.d(TAG, "validateAndLogin() failed: Invalid credentials")
                     _loginError.value = "Invalid username/email or password"
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "validateAndLogin() error: ${e.message}")
                 _loginError.value = "Login failed: ${e.message}"
             } finally {
                 _isAuthenticating.value = false
             }
         }
-    }
-    
-    /**
-     * Clear login error
-     */
-    fun clearLoginError() {
-        _loginError.value = null
     }
     
     // ========== Password Management ==========

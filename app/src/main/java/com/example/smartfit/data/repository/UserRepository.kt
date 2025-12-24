@@ -11,9 +11,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
+import android.util.Log
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class UserRepository(context: Context) {
+open class UserRepository(context: Context) {
+    
+    private val TAG = "DebugSmartApp"
     
     private val userPreferences = UserPreferences(context)
     private val userDao = AppDatabase.getDatabase(context).userDao()
@@ -101,9 +104,26 @@ class UserRepository(context: Context) {
      * NOTE: For production, use BCrypt or Argon2 instead
      */
     private fun hashPassword(password: String): String {
+        Log.d(TAG, "hashPassword() processing password length=${password.length}")
         val digest = MessageDigest.getInstance("SHA-256")
         val hashBytes = digest.digest(password.toByteArray())
         return hashBytes.joinToString("") { "%02x".format(it) }
+    }
+    
+    /**
+     * Check if username already exists
+     */
+    suspend fun isUsernameExists(username: String): Boolean {
+        val existing = credentialsDao.findByUsernameOrEmail(username)
+        return existing != null
+    }
+    
+    /**
+     * Check if email already exists
+     */
+    suspend fun isEmailExists(email: String): Boolean {
+        val existing = credentialsDao.findByUsernameOrEmail(email)
+        return existing != null
     }
     
     /**
@@ -121,6 +141,24 @@ class UserRepository(context: Context) {
         height: String,
         gender: String
     ): Int? {
+        Log.d(TAG, "Repo: register() checking for duplicates - username=$username, email=$email")
+        
+        // Check for duplicate username or email
+        val existingUser = credentialsDao.findByUsernameOrEmail(username)
+        val existingEmail = credentialsDao.findByUsernameOrEmail(email)
+        
+        if (existingUser != null) {
+            Log.d(TAG, "Repo: register() FAILED - username '$username' already exists")
+            return null
+        }
+        
+        if (existingEmail != null) {
+            Log.d(TAG, "Repo: register() FAILED - email '$email' already exists")
+            return null
+        }
+        
+        Log.d(TAG, "Repo: register() no duplicates found, proceeding with registration")
+        
         return try {
             // Create credentials
             val credentials = UserCredentials(
@@ -129,6 +167,7 @@ class UserRepository(context: Context) {
                 passwordHash = hashPassword(password)
             )
             val userId = credentialsDao.insert(credentials).toInt()
+            Log.d(TAG, "Repo: register() credentials inserted, userId=$userId")
             
             // Create profile
             val now = System.currentTimeMillis()
@@ -143,14 +182,17 @@ class UserRepository(context: Context) {
                 updatedAt = now
             )
             userDao.insertOrUpdateUser(user)
+            Log.d(TAG, "Repo: register() profile created for userId=$userId")
             
             // Auto-login
             userPreferences.setCurrentUserId(userId)
             userPreferences.login()
+            Log.d(TAG, "Repo: register() SUCCESS - user auto-logged in")
             
             userId
         } catch (e: Exception) {
-            null // Registration failed (e.g., duplicate username/email)
+            Log.e(TAG, "Repo: register() ERROR: ${e.message}")
+            null // Registration failed
         }
     }
     
@@ -158,15 +200,18 @@ class UserRepository(context: Context) {
      * Validate credentials and login
      * Returns true if successful, false otherwise
      */
-    suspend fun validateAndLogin(usernameOrEmail: String, password: String): Boolean {
+    open suspend fun validateAndLogin(usernameOrEmail: String, password: String): Boolean {
+        Log.d(TAG, "Repo: validateAndLogin() checking $usernameOrEmail")
         val credentials = credentialsDao.findByUsernameOrEmail(usernameOrEmail) ?: return false
         val inputHash = hashPassword(password)
         
         return if (credentials.passwordHash == inputHash) {
+            Log.d(TAG, "Repo: validateAndLogin() hash match success")
             userPreferences.setCurrentUserId(credentials.id)
             userPreferences.login()
             true
         } else {
+            Log.d(TAG, "Repo: validateAndLogin() hash mismatch")
             false
         }
     }

@@ -49,6 +49,7 @@ fun BioDataScreen(
     // Observe loading and login states
     val isAuthenticating by userViewModel.isAuthenticating.collectAsState()
     val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
+    val loginError by userViewModel.loginError.collectAsState()
 
     // Navigate to home when logged in
     LaunchedEffect(isLoggedIn) {
@@ -57,6 +58,11 @@ fun BioDataScreen(
                 popUpTo(Routes.splash) { inclusive = true }
             }
         }
+    }
+    
+    // Clear any previous login error when entering this screen
+    LaunchedEffect(Unit) {
+        userViewModel.clearLoginError()
     }
 
     Scaffold(
@@ -215,7 +221,28 @@ fun BioDataScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display registration error (duplicate username/email)
+            if (loginError != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = loginError ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Finish Button
             Button(

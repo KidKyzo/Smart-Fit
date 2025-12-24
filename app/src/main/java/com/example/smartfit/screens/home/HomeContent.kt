@@ -305,7 +305,8 @@ fun TabletHomeLayout(
                             value = "$calorieIntake kcal",
                             icon = Icons.Default.Restaurant,
                             iconColor = md_theme_light_primary,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navController.navigate("calorie_intake_history") }
                         )
                     }
                 }

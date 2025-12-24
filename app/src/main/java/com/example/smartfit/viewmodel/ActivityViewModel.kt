@@ -19,12 +19,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import android.util.Log
 
 class ActivityViewModel(
     private val application: Application,
     private val activityRepository: ActivityRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
+    private val TAG = "DebugSmartApp"
 
     private val _activities = MutableStateFlow<List<ActivityLog>>(emptyList())
     val activities: StateFlow<List<ActivityLog>> = _activities.asStateFlow()
@@ -101,6 +104,7 @@ class ActivityViewModel(
     }
     
     fun startStepTracking() {
+        Log.d(TAG, "startStepTracking() called")
         stepSensorJob?.cancel()
         stepSensorJob = viewModelScope.launch {
             val trackingData = userRepository.stepTrackingData.first()
@@ -169,6 +173,7 @@ class ActivityViewModel(
                     userRepository.saveStepTrackingData(currentSensorSteps, lastSavedStepsToday, todayDate)
                     
                     // Update internal stats directly for responsiveness
+                    Log.d(TAG, "Steps updated: liveSteps=$lastSavedStepsToday, sensorSteps=$currentSensorSteps")
                     updateLiveStats(lastSavedStepsToday)
                 }
             }
@@ -282,7 +287,9 @@ class ActivityViewModel(
             // Multi-user: Ensure userId is set
             val userId = userRepository.currentUserId.first() ?: return@launch
             val activityWithUserId = activity.copy(userId = userId)
+            Log.d(TAG, "addActivity() type=${activity.activityType}, duration=${activity.duration}, calories=${activity.calories}")
             activityRepository.insertActivity(activityWithUserId)
+            Log.d(TAG, "addActivity() database insert success")
             _lastAddedActivity.value = activityWithUserId
         }
     }

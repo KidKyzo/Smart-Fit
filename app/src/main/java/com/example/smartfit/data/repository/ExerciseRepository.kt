@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.flow
 
 class ExerciseRepository(private val api: ExerciseDbApi) {
 
-    // Cache the list in memory so we don't download it every time
     private var cachedExercises: List<ExerciseDto> = emptyList()
 
     fun getExercises(bodyPart: String? = null): Flow<Result<List<ExerciseDto>>> = flow {
@@ -16,12 +15,10 @@ class ExerciseRepository(private val api: ExerciseDbApi) {
                 cachedExercises = api.getExercises()
             }
 
-            // Perform filtering locally
             val result = if (bodyPart == null || bodyPart == "All") {
                 cachedExercises
             } else {
                 cachedExercises.filter { exercise ->
-                    // Check if primary muscles contain the search term
                     exercise.primaryMuscles?.any {
                         it.contains(bodyPart, ignoreCase = true)
                     } == true

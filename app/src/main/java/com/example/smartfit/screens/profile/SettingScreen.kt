@@ -273,7 +273,6 @@ For privacy concerns, please contact the app developer through the app store lis
     if (showLogoutConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirmDialog = false },
-            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
             title = { Text("Confirm Logout") },
             text = { Text("Are you sure you want to log out of your account?") },
             confirmButton = {
@@ -399,7 +398,6 @@ fun ChangePasswordDialog(
             userViewModel.clearPasswordChangeResult()
             onDismiss()
         },
-        icon = { Icon(Icons.Default.Lock, contentDescription = null) },
         title = { Text("Change Password") },
         text = {
             Column(

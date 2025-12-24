@@ -26,13 +26,7 @@ fun PlanScreen(
     foodViewModel: FoodViewModel,
     exerciseViewModel: ExerciseViewModel
 ) {
-    // We don't need to observe list states here anymore as we just navigate to the list screens
-    // val activities by activityViewModel.activities.collectAsState() // Kept for Activity Log
     val activities by activityViewModel.activities.collectAsState()
-    
-    // Removed unused state observations for exercises and foods since we just link to them now
-    // val exercises by exerciseViewModel.exercises.collectAsState()
-    // val isLoading by exerciseViewModel.isLoading.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -61,7 +55,6 @@ fun PlanScreen(
             contentPadding = PaddingValues(vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // 1. Exercise API Section (Now using the new gradient box component)
             item {
                 ExerciseSection(
                     onNavigateToList = {
@@ -70,7 +63,6 @@ fun PlanScreen(
                 )
             }
 
-            // 2. Calorie Intake Section
             item {
                 CalorieIntakeSection(
                     onNavigateToList = {
@@ -79,7 +71,6 @@ fun PlanScreen(
                 )
             }
 
-            // 3. Recent Activities Section
             item {
                 Column(
                     modifier = Modifier

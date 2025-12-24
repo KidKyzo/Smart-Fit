@@ -86,7 +86,7 @@ fun HeartBeatAnimation(
 
     val snappyEasing = CubicBezierEasing(0.2f, 0.0f, 0.2f, 1.0f)
     val exitAnimationScale by animateFloatAsState(
-        targetValue = if (isExitAnimationStarted) screenDiagonal / baseSize.value else 0f,
+        targetValue = if (isExitAnimationStarted) (screenDiagonal / baseSize.value) * 1.5f else 0f,
         animationSpec = tween(
             durationMillis = exitAnimationDuration.inWholeMilliseconds.toInt(),
             easing = snappyEasing
