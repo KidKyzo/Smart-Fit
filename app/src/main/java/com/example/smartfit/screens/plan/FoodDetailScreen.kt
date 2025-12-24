@@ -156,7 +156,7 @@ fun FoodDetailScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .menuAnchor(),
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
                                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                             )
                             

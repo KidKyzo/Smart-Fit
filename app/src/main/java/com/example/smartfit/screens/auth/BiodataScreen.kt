@@ -151,7 +151,7 @@ fun BioDataScreen(
                     // The .menuAnchor() modifier is crucial for positioning the dropdown
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
                 )
 
                 // This is the actual dropdown menu with the options

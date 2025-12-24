@@ -65,7 +65,7 @@ fun AddToIntakeDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                     )
                     
@@ -100,7 +100,7 @@ fun AddToIntakeDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                     )
                     

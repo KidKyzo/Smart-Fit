@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    //compose dependency
+    // Compose dependencies (managed by BOM)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -51,41 +51,40 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.lottie.compose)
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
-    implementation("androidx.compose.material:material-icons-extended:1.7.0-beta01") // Or your current version
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.androidx.splashscreen)
 
-//viewmodel dependency
+    // ViewModel dependencies
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.compose.animation)
 
-    //room database dependencies
+    // Room database dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    //navigation dependency
+    // Navigation dependency
     implementation(libs.androidx.navigation.compose)
 
-    //networking dependencies (FatSecret API)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    // Networking dependencies (FatSecret API)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
 
-    //image loading (Coil)
-    implementation("io.coil-kt:coil-compose:2.5.0")
-    implementation("io.coil-kt:coil-gif:2.5.0")
+    // Image loading (Coil)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
-    //test & debug
+    // Test & debug
     testImplementation(libs.junit)
-    testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
