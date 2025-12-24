@@ -197,9 +197,9 @@ fun FoodDetailScreen(
                         HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.xs))
                         
                         NutritionRow("Calories", "${nutrition.calories} kcal")
-                        NutritionRow("Protein", "${String.format("%.1f", nutrition.protein)}g")
-                        NutritionRow("Carbohydrates", "${String.format("%.1f", nutrition.carbs)}g")
-                        NutritionRow("Fats", "${String.format("%.1f", nutrition.fats)}g")
+                        NutritionRow("Protein", "${"%.1f".format(nutrition.protein)}g")
+                        NutritionRow("Carbohydrates", "${"%.1f".format(nutrition.carbs)}g")
+                        NutritionRow("Fats", "${"%.1f".format(nutrition.fats)}g")
                     }
                 }
             }

@@ -59,7 +59,7 @@ fun BMIIndicator(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                 )
                 Text(
-                    text = String.format("%.1f", bmi),
+                    text = "%.1f".format(bmi),
                     style = AppTypography.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = color

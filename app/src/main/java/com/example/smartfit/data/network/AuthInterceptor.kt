@@ -7,6 +7,7 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import java.lang.System
 
 /**
  * OAuth 2.0 Authentication Interceptor

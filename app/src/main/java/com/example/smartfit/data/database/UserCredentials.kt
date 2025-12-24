@@ -2,6 +2,7 @@ package com.example.smartfit.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.lang.System
 
 /**
  * User credentials entity for authentication

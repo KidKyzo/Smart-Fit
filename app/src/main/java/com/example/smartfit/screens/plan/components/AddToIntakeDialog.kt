@@ -148,7 +148,7 @@ fun AddToIntakeDialog(
                 ) {
                     Text("Protein:", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "${String.format("%.1f", nutrition.protein)}g",
+                        "${"%.1f".format(nutrition.protein)}g",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -159,7 +159,7 @@ fun AddToIntakeDialog(
                 ) {
                     Text("Carbs:", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "${String.format("%.1f", nutrition.carbs)}g",
+                        "${"%.1f".format(nutrition.carbs)}g",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -170,7 +170,7 @@ fun AddToIntakeDialog(
                 ) {
                     Text("Fats:", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "${String.format("%.1f", nutrition.fats)}g",
+                        "${"%.1f".format(nutrition.fats)}g",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

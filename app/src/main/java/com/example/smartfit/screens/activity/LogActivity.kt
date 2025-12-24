@@ -22,6 +22,7 @@ import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.ActivityViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import java.lang.System
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -54,7 +54,7 @@ import com.example.smartfit.ui.theme.md_theme_light_primary
 import com.example.smartfit.viewmodel.ActivityViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import com.example.smartfit.viewmodel.FoodViewModel
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat

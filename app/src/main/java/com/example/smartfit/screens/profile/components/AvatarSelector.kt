@@ -34,6 +34,7 @@ import com.example.smartfit.R
 import com.example.smartfit.ui.designsystem.*
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.System
 
 // Maximum constraints for custom images
 const val MAX_IMAGE_SIZE_PIXELS = 512

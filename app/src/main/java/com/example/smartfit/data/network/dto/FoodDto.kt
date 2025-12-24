@@ -57,9 +57,9 @@ fun FoodDto.toFoodData(): FoodData {
         description = "",  // No dietary/allergen descriptions
         imageUrl = "",  // Empty - will use placeholder icon
         calories = calories,
-        protein = "${String.format("%.1f", protein)}g",
-        carbs = "${String.format("%.1f", carbs)}g",
-        fats = "${String.format("%.1f", fats)}g",
+        protein = "${"%.1f".format(protein)}g",
+        carbs = "${"%.1f".format(carbs)}g",
+        fats = "${"%.1f".format(fats)}g",
         servingSize = "${servingSizeGrams.toInt()}g"
     )
 }
