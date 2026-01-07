@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -15,12 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartfit.data.database.FoodIntakeLog
 import com.example.smartfit.ui.designsystem.*
 import com.example.smartfit.viewmodel.FoodViewModel
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,6 +35,7 @@ fun CalorieIntakeHistoryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var deletedItem by remember { mutableStateOf<FoodIntakeLog?>(null) }
+    var restoredItemId by remember { mutableStateOf<Long?>(null) }
     
     // Show snackbar when an item is deleted - this persists across recompositions
     LaunchedEffect(deletedItem) {
@@ -49,8 +47,9 @@ fun CalorieIntakeHistoryScreen(
             )
             
             if (result == SnackbarResult.ActionPerformed) {
-                // Undo deletion
+                // Undo deletion and track the restored item's ID
                 foodViewModel.undoDeleteFoodIntake(item)
+                restoredItemId = item.id
             }
             
             // Clear deleted item after handling
@@ -122,31 +121,30 @@ fun CalorieIntakeHistoryScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             if (groupedFoods.isEmpty()) {
-            // Empty state
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                // Empty state
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No food intake logged",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                    )
-                    Text(
-                        text = "Start logging your meals to see them here",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        Text(
+                            text = "No food intake logged",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
+                        )
+                        Text(
+                            text = "Start logging your meals to see them here",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                    }
                 }
-            }
-        } else {
-            Box(modifier = Modifier.fillMaxSize()) {
+            } else {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -154,48 +152,50 @@ fun CalorieIntakeHistoryScreen(
                     contentPadding = PaddingValues(Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
-                // Sort indicator
-                item {
-                    Text(
-                        text = "Sorted by: ${if (sortNewest) "Newest First" else "Oldest First"}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
-                    )
-                }
-                
-                // Group by day
-                groupedFoods.forEach { (dayTimestamp, foodsForDay) ->
-                    // Day header
+                    // Sort indicator
                     item {
-                        DayHeader(
-                            dayTimestamp = dayTimestamp,
-                            totalCalories = foodsForDay.sumOf { (it.calories * it.servings).toInt() }
+                        Text(
+                            text = "Sorted by: ${if (sortNewest) "Newest First" else "Oldest First"}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = Alpha.medium)
                         )
                     }
                     
-                    // Foods for this day with swipe-to-delete
-                    items(
-                        items = foodsForDay,
-                        key = { it.id }
-                    ) { food ->
-                        SwipeToDeleteItem(
-                            food = food,
-                            onDelete = {
-                                deletedItem = food
-                                foodViewModel.deleteFoodIntake(food)
-                            }
-                        )
-                    }
-                    
-                    // Spacer between days
-                    item {
-                        Spacer(modifier = Modifier.height(Spacing.sm))
+                    // Group by day
+                    groupedFoods.forEach { (dayTimestamp, foodsForDay) ->
+                        // Day header
+                        item {
+                            DayHeader(
+                                dayTimestamp = dayTimestamp,
+                                totalCalories = foodsForDay.sumOf { (it.calories * it.servings).toInt() }
+                            )
+                        }
+                        
+                        // Foods for this day with swipe-to-delete
+                        items(
+                            items = foodsForDay,
+                            key = { it.id }
+                        ) { food ->
+                            SwipeToDeleteItem(
+                                food = food,
+                                restoredItemId = restoredItemId,
+                                onRestoredItemReset = { restoredItemId = null },
+                                onDelete = {
+                                    deletedItem = food
+                                    foodViewModel.deleteFoodIntake(food)
+                                }
+                            )
+                        }
+                        
+                        // Spacer between days
+                        item {
+                            Spacer(modifier = Modifier.height(Spacing.sm))
+                        }
                     }
                 }
-            }
             }
             
-            // Snackbar host at bottom - always visible regardless of empty/non-empty state
+            // Snackbar host at bottom - ALWAYS visible regardless of empty/non-empty state
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -203,7 +203,7 @@ fun CalorieIntakeHistoryScreen(
         }
     }
 }
-}
+
 
 @Composable
 private fun DayHeader(
@@ -273,6 +273,8 @@ private fun DayHeader(
 @Composable
 private fun SwipeToDeleteItem(
     food: FoodIntakeLog,
+    restoredItemId: Long?,
+    onRestoredItemReset: () -> Unit,
     onDelete: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -286,6 +288,14 @@ private fun SwipeToDeleteItem(
         },
         positionalThreshold = { distance -> distance * 0.5f }
     )
+    
+    // Reset dismiss state when this item was restored via undo
+    LaunchedEffect(restoredItemId) {
+        if (restoredItemId == food.id) {
+            dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+            onRestoredItemReset()
+        }
+    }
     
     SwipeToDismissBox(
         state = dismissState,
