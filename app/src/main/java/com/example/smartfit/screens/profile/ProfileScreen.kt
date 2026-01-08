@@ -1,5 +1,6 @@
 package com.example.smartfit.screens.profile
 
+// REMOVED: import android.content.ContentValues.TAG (This was causing the wrong tag)
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -42,6 +43,9 @@ import com.example.smartfit.viewmodel.ThemeViewModel
 import com.example.smartfit.viewmodel.UserViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+
+// --- ADDED THIS CONSTANT SO LOGCAT FILTER WORKS ---
+private const val TAG = "DebugSmartApp"
 
 // Preset avatar resource IDs
 val presetAvatars = listOf(
@@ -128,7 +132,10 @@ fun ProfileScreen(
                                 .clip(Shapes.circle)
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .border(
-                                    BorderStroke(BorderWidth.thick, MaterialTheme.colorScheme.primary),
+                                    BorderStroke(
+                                        BorderWidth.thick,
+                                        MaterialTheme.colorScheme.primary
+                                    ),
                                     Shapes.circle
                                 )
                                 .clickable { showEditNameAvatarDialog = true },
@@ -159,7 +166,8 @@ fun ProfileScreen(
                                 }
                             } else {
                                 // Preset avatar
-                                val resourceId = presetAvatars.getOrElse(avatarId) { presetAvatars[0] }
+                                val resourceId =
+                                    presetAvatars.getOrElse(avatarId) { presetAvatars[0] }
                                 Image(
                                     painter = painterResource(id = resourceId),
                                     contentDescription = "Profile Picture",
@@ -170,7 +178,7 @@ fun ProfileScreen(
                                 )
                             }
                         }
-                        
+
                         // Edit badge - positioned outside at bottom-right
                         Box(
                             modifier = Modifier
@@ -278,7 +286,7 @@ fun ProfileScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Icon(
-                                imageVector =  Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = "View detail",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
@@ -320,7 +328,7 @@ fun ProfileScreen(
             item {
                 // Add spacing before navigation boxes
                 Spacer(modifier = Modifier.height(Spacing.xs))
-                
+
                 // Settings Box - Full width, separate row
                 NavigationBox(
                     modifier = Modifier.fillMaxWidth(),
@@ -355,6 +363,7 @@ fun ProfileScreen(
     }
 
     // Edit Name and Avatar Dialog
+    // Edit Name and Avatar Dialog
     if (showEditNameAvatarDialog) {
         EditProfileNameAvatarDialog(
             currentName = userName,
@@ -363,6 +372,14 @@ fun ProfileScreen(
             currentCustomPath = customAvatarPath,
             onDismiss = { showEditNameAvatarDialog = false },
             onSave = { name, newAvatarType, newAvatarId, newCustomPath ->
+
+                // --- DEBUG LOGS START (For Report) ---
+                android.util.Log.d(TAG, "Profile Update: User initiated save action")
+                android.util.Log.d(TAG, "Profile Update: Processing new name -> '$name'")
+                android.util.Log.d(TAG, "Profile Update: Processing avatar -> Type: $newAvatarType, ID: $newAvatarId")
+                android.util.Log.d(TAG, "Profile Update: Committing changes to ViewModel")
+                // --- DEBUG LOGS END ---
+
                 // Save name
                 userViewModel.updateName(name)
                 // Save avatar
@@ -400,6 +417,16 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        // --- DEBUG LOGS START ---
+                        // These exact lines produce the logs for your report
+                        android.util.Log.d(TAG, "Logout Action: User confirmed logout dialog")
+                        android.util.Log.d(TAG, "Logout Action: Clearing user session data")
+                        android.util.Log.d(
+                            TAG,
+                            "Logout Navigation: Navigating to Login & clearing backstack"
+                        )
+                        // --- DEBUG LOGS END ---
+
                         showLogoutDialog = false
                         userViewModel.logout()
                         navController.navigate(Routes.login) {
